@@ -2,7 +2,7 @@
 
 **AML 2026 Semester Project — Proposal**
 
-Kai Koepchen (24-738-189), Benedikt Jung (24-723-082), Ardjan Doci (17-878-349), Peng Liu (23-742-455) — University of Zurich / ETH Zurich
+Kai Koepchen (24-738-189), Benedikt Jung (24-723-082), Ardjan Doci (17-878-349), Peng Liu (23-742-455) — University of Zurich
 
 ## Background
 
