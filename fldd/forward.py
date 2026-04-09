@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class LearnedForwardProcess(nn.Module):
@@ -28,7 +29,7 @@ class LearnedForwardProcess(nn.Module):
         Monotonically increasing via cumulative softplus, then sigmoid
         to keep in (0, 0.5).
         """
-        increments = torch.softplus(self.logits)
+        increments = F.softplus(self.logits)
         cumulative = torch.cumsum(increments, dim=0)
         # map to (0, 0.5) — sigmoid gives (0,1), multiply by 0.5
         alphas = 0.5 * torch.sigmoid(cumulative - 2.0)
