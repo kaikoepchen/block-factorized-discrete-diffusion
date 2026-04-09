@@ -54,25 +54,28 @@ class UNet(nn.Module):
         # input conv
         self.in_conv = nn.Conv2d(1, channels[0], 3, padding=1)
 
-        # down path
+        # down path: each level does ResBlock then downsample
+        # skip connections are saved BEFORE downsampling
         self.down_blocks = nn.ModuleList()
         self.downsamples = nn.ModuleList()
+        skip_channels = [channels[0]]  # from in_conv
         in_ch = channels[0]
         for ch in channels[1:]:
             self.down_blocks.append(ResBlock(in_ch, ch, t_dim))
             self.downsamples.append(nn.Conv2d(ch, ch, 3, stride=2, padding=1))
+            skip_channels.append(ch)
             in_ch = ch
 
         # middle
         self.mid = ResBlock(channels[-1], channels[-1], t_dim)
 
-        # up path
+        # up path: upsample, concat skip, ResBlock
         self.up_blocks = nn.ModuleList()
         self.upsamples = nn.ModuleList()
-        for ch in reversed(channels[:-1]):
+        for i, ch in enumerate(reversed(channels[:-1])):
+            skip_ch = skip_channels.pop()
             self.upsamples.append(nn.ConvTranspose2d(in_ch, ch, 4, stride=2, padding=1))
-            # skip connection doubles channels
-            self.up_blocks.append(ResBlock(ch * 2, ch, t_dim))
+            self.up_blocks.append(ResBlock(ch + skip_ch, ch, t_dim))
             in_ch = ch
 
         # output
