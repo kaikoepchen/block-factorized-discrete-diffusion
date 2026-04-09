@@ -32,12 +32,14 @@ def main():
 
     # load model
     ckpt = torch.load(args.checkpoint, map_location=args.device)
-    model = UNet(channels=(32, 64, 128)).to(args.device)
+    block_size = ckpt.get("block_size", 1)
+    T = ckpt.get("T", args.T)
+    model = UNet(channels=(32, 64, 128), block_size=block_size).to(args.device)
     model.load_state_dict(ckpt["model"])
-    forward_process = LearnedForwardProcess(T=args.T).to(args.device)
+    forward_process = LearnedForwardProcess(T=T).to(args.device)
     forward_process.load_state_dict(ckpt["forward"])
 
-    print(f"loaded checkpoint from epoch {ckpt['epoch']}, loss {ckpt['loss']:.4f}")
+    print(f"loaded checkpoint from epoch {ckpt['epoch']}, loss {ckpt['loss']:.4f}, block_size={block_size}")
     print(f"alphas: {forward_process.get_alphas().detach().cpu().tolist()}")
 
     # generate samples
@@ -46,7 +48,7 @@ def main():
     remaining = args.n_samples
     while remaining > 0:
         n = min(args.batch_size, remaining)
-        s = sample(model, forward_process, args.T, n_samples=n, device=args.device)
+        s = sample(model, forward_process, T, n_samples=n, device=args.device, block_size=block_size)
         # convert to 3-channel for FID (InceptionV3 expects RGB)
         s_rgb = s.repeat(1, 3, 1, 1)
         all_samples.append(s_rgb.cpu())
