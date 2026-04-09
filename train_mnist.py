@@ -19,6 +19,8 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save_dir", type=str, default="checkpoints")
+    parser.add_argument("--block_size", type=int, default=1, choices=[1, 2, 4],
+                        help="block factorization size: 1=pixel, 2=1x2, 4=2x2")
     parser.add_argument("--sample_every", type=int, default=10, help="generate samples every N epochs")
     args = parser.parse_args()
 
@@ -26,14 +28,14 @@ def main():
     if args.device == "cuda":
         torch.cuda.manual_seed(args.seed)
 
-    print(f"Training FLDD on binarized MNIST, T={args.T}, device={args.device}")
+    print(f"Training FLDD on binarized MNIST, T={args.T}, block_size={args.block_size}, device={args.device}")
 
     # data
     train_loader, test_loader = get_binarized_mnist(batch_size=args.batch_size)
 
     # models
     forward_process = LearnedForwardProcess(T=args.T).to(args.device)
-    model = UNet(channels=(32, 64, 128)).to(args.device)
+    model = UNet(channels=(32, 64, 128), block_size=args.block_size).to(args.device)
 
     n_params = sum(p.numel() for p in model.parameters())
     print(f"U-Net parameters: {n_params:,}")
@@ -49,7 +51,7 @@ def main():
     best_loss = float("inf")
 
     for epoch in tqdm(range(1, args.epochs + 1), desc="training"):
-        metrics = train_epoch(model, forward_process, train_loader, optimizer, args.T, args.device)
+        metrics = train_epoch(model, forward_process, train_loader, optimizer, args.T, args.device, args.block_size)
 
         alphas = forward_process.get_alphas().detach().cpu().tolist()
         alpha_str = ", ".join(f"{a:.4f}" for a in alphas)
@@ -66,10 +68,12 @@ def main():
                 "forward": forward_process.state_dict(),
                 "optimizer": optimizer.state_dict(),
                 "loss": best_loss,
+                "block_size": args.block_size,
+                "T": args.T,
             }, os.path.join(args.save_dir, "best.pt"))
 
         if epoch % args.sample_every == 0:
-            samples = sample(model, forward_process, args.T, n_samples=64, device=args.device)
+            samples = sample(model, forward_process, args.T, n_samples=64, device=args.device, block_size=args.block_size)
             save_samples(samples, f"samples/epoch_{epoch:03d}.png")
             print(f"  -> saved samples to samples/epoch_{epoch:03d}.png")
 
@@ -80,6 +84,8 @@ def main():
         "forward": forward_process.state_dict(),
         "optimizer": optimizer.state_dict(),
         "loss": metrics["loss"],
+        "block_size": args.block_size,
+        "T": args.T,
     }, os.path.join(args.save_dir, "final.pt"))
 
     # generate final samples
