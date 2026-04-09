@@ -34,16 +34,48 @@ class ResBlock(nn.Module):
         return h + self.skip(x)
 
 
+class BlockOutputHead(nn.Module):
+    """Output head that produces logits over block states.
+
+    For block_size=1: outputs (B, 1, H, W) — per-pixel logit (backward compatible)
+    For block_size=2: outputs (B, 4, H, W//2) — 4-way categorical per 1x2 block
+    For block_size=4: outputs (B, 16, H//2, W//2) — 16-way categorical per 2x2 block
+    """
+
+    def __init__(self, in_channels, block_size):
+        super().__init__()
+        self.block_size = block_size
+        n_states = 2 ** block_size
+
+        if block_size == 1:
+            self.head = nn.Conv2d(in_channels, 1, 1)
+        elif block_size == 2:
+            # group pairs of columns: use a 1x2 strided conv
+            self.head = nn.Conv2d(in_channels, n_states, kernel_size=(1, 2), stride=(1, 2))
+        elif block_size == 4:
+            # group 2x2 patches: use a 2x2 strided conv
+            self.head = nn.Conv2d(in_channels, n_states, kernel_size=2, stride=2)
+        else:
+            raise ValueError(f"unsupported block_size={block_size}")
+
+    def forward(self, features):
+        return self.head(features)
+
+
 class UNet(nn.Module):
     """Small U-Net for 28x28 binary images.
 
-    Takes noisy image z_t (1 channel) and timestep t,
-    outputs per-pixel logits for p(z_s = 1 | z_t).
+    Takes noisy image z_t (1 channel) and timestep t.
+    Output depends on block_size:
+      block_size=1: (B, 1, 28, 28) per-pixel logits
+      block_size=2: (B, 4, 28, 14) logits over 1x2 block states
+      block_size=4: (B, 16, 14, 14) logits over 2x2 block states
     """
 
-    def __init__(self, channels=(32, 64, 128), t_dim=64):
+    def __init__(self, channels=(32, 64, 128), t_dim=64, block_size=1):
         super().__init__()
         self.t_dim = t_dim
+        self.block_size = block_size
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(t_dim),
             nn.Linear(t_dim, t_dim * 2),
@@ -78,9 +110,9 @@ class UNet(nn.Module):
             self.up_blocks.append(ResBlock(ch + skip_ch, ch, t_dim))
             in_ch = ch
 
-        # output
+        # output: norm + block head
         self.out_norm = nn.GroupNorm(min(8, channels[0]), channels[0])
-        self.out_conv = nn.Conv2d(channels[0], 1, 1)
+        self.out_head = BlockOutputHead(channels[0], block_size)
 
     def forward(self, z_t, t):
         """
@@ -89,7 +121,7 @@ class UNet(nn.Module):
             t: (B,) integer timestep indices
 
         Returns:
-            logits: (B, 1, 28, 28) logits for p(z_s = 1 | z_t)
+            logits: block-level logits (shape depends on block_size)
         """
         t_emb = self.time_mlp(t)
         h = self.in_conv(z_t)
@@ -108,11 +140,10 @@ class UNet(nn.Module):
         for block, up in zip(self.up_blocks, self.upsamples):
             h = up(h)
             skip = skips.pop()
-            # handle size mismatch from odd dimensions
             if h.shape != skip.shape:
                 h = F.interpolate(h, size=skip.shape[2:])
             h = torch.cat([h, skip], dim=1)
             h = block(h, t_emb)
 
-        h = self.out_conv(F.silu(self.out_norm(h)))
-        return h
+        h = F.silu(self.out_norm(h))
+        return self.out_head(h)
