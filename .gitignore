@@ -1,0 +1,44 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# data
+data/
+
+# model checkpoints
+checkpoints/
+*.pt
+*.pth
+
+# logs
+runs/
+wandb/
+*.log
+
+# misc
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# env
+.env
+venv/
+env/
+
+# jupyter
+.ipynb_checkpoints/
+
+# fid stats cache
+fid_stats/
+
+# generated samples
+samples/
+
+# claude
+.claude/
