@@ -89,7 +89,7 @@ def main():
     }, os.path.join(args.save_dir, "final.pt"))
 
     # generate final samples
-    samples = sample(model, forward_process, args.T, n_samples=64, device=args.device)
+    samples = sample(model, forward_process, args.T, n_samples=64, device=args.device, block_size=args.block_size)
     save_samples(samples, "samples/final.png")
     print("done. final samples saved to samples/final.png")
 
