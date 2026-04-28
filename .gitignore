@@ -10,9 +10,7 @@ build/
 data/
 
 # model checkpoints
-checkpoints/
-*.pt
-*.pth
+
 
 # logs
 runs/
