@@ -14,16 +14,21 @@ from collections import defaultdict
 import numpy as np
 
 
-def load_runs(path, fid_field="fid", loss_field=None):
-    """Return list of dicts: [{block_size, seed, fid, loss?}, ...]."""
+def load_runs(path, fid_field="fid", loss_fields=("ckpt_loss", "best_loss")):
+    """Return list of dicts: [{block_size, seed, fid, loss?}, ...].
+
+    Tries each name in loss_fields until one is present in the per_run entry.
+    """
     with open(path) as f:
         d = json.load(f)
     out = []
     for r in d["per_run"]:
         entry = {"block_size": int(r["block_size"]), "seed": int(r["seed"]),
                  "fid": float(r[fid_field])}
-        if loss_field and loss_field in r:
-            entry["loss"] = float(r[loss_field])
+        for lf in loss_fields:
+            if lf in r:
+                entry["loss"] = float(r[lf])
+                break
         out.append(entry)
     return out
 
@@ -98,24 +103,33 @@ def bootstrap_ci(diffs, n_boot=20000, ci=0.95, seed=0):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--existing", type=str,
-                        default="results_e2_from_ckpts.json")
-    parser.add_argument("--extra", type=str, default="results_e2_extra.json")
+    parser.add_argument("--sources", type=str, nargs="+", required=True,
+                        help="one or more results JSONs (run_e2.py or "
+                             "eval_e2_from_ckpts.py format)")
     parser.add_argument("--out", type=str, default="results_e2_merged.json")
     args = parser.parse_args()
 
-    runs_a = load_runs(args.existing, fid_field="fid", loss_field="ckpt_loss")
-    runs_b = load_runs(args.extra, fid_field="fid", loss_field="best_loss")
-
-    # tag source for traceability
-    for r in runs_a:
-        r["source"] = "from_ckpts"
-    for r in runs_b:
-        r["source"] = "extra"
-
-    all_runs = runs_a + runs_b
-    print(f"loaded {len(runs_a)} from {args.existing}, {len(runs_b)} from {args.extra}")
+    all_runs = []
+    for path in args.sources:
+        runs = load_runs(path)
+        for r in runs:
+            r["source"] = path
+        all_runs.extend(runs)
+        print(f"loaded {len(runs)} from {path}")
     print(f"  total {len(all_runs)} runs\n")
+
+    # dedupe (block_size, seed) — keep first occurrence (sources earlier in
+    # the list win, so list the canonical/best source first)
+    seen = set()
+    deduped = []
+    for r in all_runs:
+        key = (r["block_size"], r["seed"])
+        if key in seen:
+            print(f"  skipping duplicate run bs={key[0]} seed={key[1]} from {r['source']}")
+            continue
+        seen.add(key)
+        deduped.append(r)
+    all_runs = deduped
 
     fid_pairs = collect_pairs(all_runs, 1, 4, "fid")
     loss_pairs = collect_pairs(all_runs, 1, 4, "loss")
@@ -177,7 +191,7 @@ def main():
             "t_test": ttest_l,
             "bootstrap_ci": ci_l,
         },
-        "sources": {"existing": args.existing, "extra": args.extra},
+        "sources": args.sources,
         "per_run": all_runs,
     }
     with open(args.out, "w") as f:
