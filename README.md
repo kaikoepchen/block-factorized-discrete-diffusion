@@ -45,17 +45,23 @@ python eval_e2_from_ckpts.py --device cuda                # re-score saved best.
 python merge_e2_stats.py --sources results_e2_*.json      # paired stats
 ```
 
-Results so far (n = 3 paired seeds; 3 additional seeds training in tmux for tightening):
+Results (n = 6 paired seeds: 42–47, 100 epochs each):
 
-| `|G|`     | ELBO loss (mean)   | FID @ 10k (mean ± std) |
-|-----------|--------------------|------------------------|
-| 1 (pixel) | 690.30             | 57.19 ± 1.40           |
-| 4 (2×2)   | **656.22**         | **51.15 ± 4.49**       |
+| `|G|`     | ELBO loss (mean ± std) | FID @ 10k (mean ± std) |
+|-----------|------------------------|------------------------|
+| 1 (pixel) | 690.43 ± 0.71          | 58.11 ± 2.96           |
+| 4 (2×2)   | **656.34 ± 0.55**      | **49.08 ± 3.71**       |
 
-- **ELBO:** |G|=4 is 34.08 nats lower. Paired t = 324.8, p ≈ 0 — effectively conclusive.
-- **FID:** Δ = 6.04 in favor of |G|=4, wins on 2/3 seeds. Paired t = 1.93, p (one-sided) = 0.097. Suggestive; expected to firm up at n = 6.
+- **ELBO:** |G|=4 is 34.09 ± 0.16 nats lower. Paired t = 520.6, p ≈ 0 — overwhelmingly conclusive.
+- **FID:** Δ = 9.03 in favor of |G|=4 (5/6 seeds win, one near-tie). Paired t = 3.88, p (one-sided) = 0.006, two-sided = 0.012. Wilcoxon signed-rank p = 0.031. Bootstrap 95% CI on Δ: **[+4.8, +13.2]** — comfortably positive. **H2 supported.**
 
-The learned forward schedule collapses to nearly the same `α = [0.06, 0.06, 0.06, 0.50]` across all runs regardless of block size — one near-uniformizing jump at t = T, three weak earlier steps.
+Per-seed FID (Δ = |G|=1 − |G|=4):
+
+| seed | 42    | 43    | 44     | 45    | 46     | 47     |
+|------|-------|-------|--------|-------|--------|--------|
+| Δ    | +7.84 | −0.05 | +10.34 | +7.79 | +10.75 | +17.53 |
+
+The learned forward schedule collapses to nearly the same `α = [0.06, 0.06, 0.06, 0.50]` across all 12 runs regardless of block size — one near-uniformizing jump at t = T, three weak earlier steps.
 
 ## E3 — Block joint analysis (H3)
 
