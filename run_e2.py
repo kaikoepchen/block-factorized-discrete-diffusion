@@ -9,6 +9,7 @@ preserve). Real FID images are cached once on first run.
 """
 
 import argparse
+import json
 import os
 import shutil
 import torch
@@ -78,6 +79,8 @@ def main():
     parser.add_argument("--gen_root", type=str, default="fid_stats_e2")
     parser.add_argument("--keep_gen", action="store_true",
                         help="keep generated image dirs after FID")
+    parser.add_argument("--results_json", type=str, default="results_e2.json",
+                        help="path to dump per-run results + aggregates")
     args = parser.parse_args()
 
     print(f"E2 MNIST FID sweep | T={args.T} epochs={args.epochs} "
@@ -134,6 +137,7 @@ def main():
     print("\n=== E2 summary ===")
     print(f"{'|G|':>4} | {'final_loss (mean)':>18} | "
           f"{'best_loss (mean)':>18} | {'FID (mean ± std)':>22}")
+    aggregates = {}
     for bs in args.block_sizes:
         rs = [r for r in results if r["block_size"] == bs]
         fids = torch.tensor([r["fid"] for r in rs])
@@ -143,10 +147,34 @@ def main():
         print(f"{bs:>4} | {final_loss.mean():>18.4f} | "
               f"{best_loss.mean():>18.4f} | "
               f"{fids.mean():>10.4f} ± {fid_std:<10.4f}")
+        aggregates[bs] = {
+            "n_seeds": len(rs),
+            "final_loss_mean": float(final_loss.mean()),
+            "final_loss_std": float(final_loss.std(unbiased=False)
+                                    if len(rs) == 1 else final_loss.std()),
+            "best_loss_mean": float(best_loss.mean()),
+            "best_loss_std": float(best_loss.std(unbiased=False)
+                                   if len(rs) == 1 else best_loss.std()),
+            "fid_mean": float(fids.mean()),
+            "fid_std": float(fid_std),
+        }
     print("\nper-run:")
     for r in results:
         print(f"  |G|={r['block_size']} seed={r['seed']} "
               f"fid={r['fid']:.4f} final_loss={r['final_loss']:.4f}")
+
+    payload = {
+        "config": {
+            "T": args.T, "epochs": args.epochs, "batch_size": args.batch_size,
+            "lr": args.lr, "seeds": args.seeds, "block_sizes": args.block_sizes,
+            "n_fid_samples": args.n_fid_samples,
+        },
+        "per_run": results,
+        "aggregates": {str(k): v for k, v in aggregates.items()},
+    }
+    with open(args.results_json, "w") as f:
+        json.dump(payload, f, indent=2)
+    print(f"\nwrote results -> {args.results_json}")
 
 
 if __name__ == "__main__":
