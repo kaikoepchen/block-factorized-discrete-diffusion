@@ -41,19 +41,32 @@ generated samples (pytorch-fid, InceptionV3 dims=2048).
 
 ```bash
 python run_e2.py --device cuda --epochs 100 --seeds 42 43 44 --block_sizes 1 4
-python eval_e2_from_ckpts.py --device cuda                # re-score saved best.pt's
-python merge_e2_stats.py --sources results_e2_*.json      # paired stats
+python run_e2.py --device cuda --epochs 100 --seeds 42 43 44 45 46 47 --block_sizes 2
+python eval_e2_from_ckpts.py --device cuda                  # re-score saved best.pt's
+python merge_e2_stats.py --sources results_e2_*.json --bs_a 1 --bs_b 4   # paired stats
 ```
 
-Results (n = 6 paired seeds: 42–47, 100 epochs each):
+Results (n = 6 paired seeds: 42–47, 100 epochs each, all three block sizes):
 
 | `|G|`     | ELBO loss (mean ± std) | FID @ 10k (mean ± std) |
 |-----------|------------------------|------------------------|
 | 1 (pixel) | 690.43 ± 0.71          | 58.11 ± 2.96           |
+| 2 (1×2)   | 673.44 ± 0.54          | 55.63 ± 2.56           |
 | 4 (2×2)   | **656.34 ± 0.55**      | **49.08 ± 3.71**       |
 
-- **ELBO:** |G|=4 is 34.09 ± 0.16 nats lower. Paired t = 520.6, p ≈ 0 — overwhelmingly conclusive.
-- **FID:** Δ = 9.03 in favor of |G|=4 (5/6 seeds win, one near-tie). Paired t = 3.88, p (one-sided) = 0.006, two-sided = 0.012. Wilcoxon signed-rank p = 0.031. Bootstrap 95% CI on Δ: **[+4.8, +13.2]** — comfortably positive. **H2 supported.**
+**FID is monotone in block size.** All three pairwise comparisons:
+
+| pair       | mean Δ FID | paired t | p (1-sided) | Wilcoxon p | bootstrap 95% CI | sign  |
+|------------|------------|----------|-------------|------------|------------------|-------|
+| 1 vs 2     | +2.48      | 1.435    | 0.105       | 0.109      | [−0.25, +5.87]   | 5/6   |
+| 2 vs 4     | +6.55      | 5.611    | 0.001       | 0.016      | [+4.40, +8.51]   | 6/6   |
+| **1 vs 4** | **+9.03**  | **3.88** | **0.006**   | **0.031**  | **[+4.8, +13.2]**| 5/6\* |
+
+\* seed 43 is a near-tie (Δ = −0.05); the Wilcoxon treats this conservatively.
+
+- **The big jump is 2 → 4, not 1 → 2.** Horizontal-only 1×2 blocks help only marginally (CI crosses zero); 2×2 blocks — which capture both horizontal *and* vertical local structure — give the statistically robust win. This is consistent with the TC absorbed by |G|=2 being a strict subset of the TC absorbed by |G|=4.
+- **ELBO** is monotone too (690 → 673 → 656); the block model is strictly more expressive on its own loss, so this is largely a sanity check that optimization converged. The headline claim is the held-out FID gap.
+- **H2 supported** for |G|=4; |G|=2 directionally consistent but underpowered.
 
 Per-seed FID (Δ = |G|=1 − |G|=4):
 
@@ -61,7 +74,22 @@ Per-seed FID (Δ = |G|=1 − |G|=4):
 |------|-------|-------|--------|-------|--------|--------|
 | Δ    | +7.84 | −0.05 | +10.34 | +7.79 | +10.75 | +17.53 |
 
-The learned forward schedule collapses to nearly the same `α = [0.06, 0.06, 0.06, 0.50]` across all 12 runs regardless of block size — one near-uniformizing jump at t = T, three weak earlier steps.
+### Schedule collapse
+
+The learned forward schedule collapses to `α ≈ [0.06, 0.06, 0.06, 0.50]` in
+**18 / 18 runs across all three block sizes** — one near-uniformizing jump at
+t = T, three weak earlier steps. Identical to four significant figures
+regardless of `|G|`.
+
+![learned forward schedule, all E2 runs](viz_schedule_e2.png)
+
+Two implications:
+1. The FID comparison is at the *same* forward process across all three block
+   sizes. The block advantage is purely on the reverse parameterization, not
+   from co-adapting the forward.
+2. The learned schedule on binarized MNIST at T = 4 is degenerate: a near-no-op
+   pre-stage followed by one big uniformizing step. This is a property of
+   FLDD on this dataset, not of our method, but it bears flagging.
 
 ## E3 — Block joint analysis (H3)
 
@@ -165,6 +193,7 @@ run_e1.py              E1 sweep
 run_e2.py              E2 sweep: train + FID + JSON dump
 run_e3.py              E3 block-joint analysis (uses |G|=4 ckpts from E2)
 run_e4.py              E4 sweep: FID vs T ∈ {2,4,8,16} × |G| ∈ {1,4}
+viz_schedule.py        plot learned αₜ from E2 + E4 checkpoints
 eval_e2_from_ckpts.py  re-score saved E2 checkpoints
 merge_e2_stats.py      paired t / Wilcoxon / sign + bootstrap CI on E2 results
 evaluate_fid.py        ad-hoc per-checkpoint FID
