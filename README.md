@@ -104,6 +104,41 @@ Sanity checks: factorized joints → TC ≈ 0 (< 1e-6 numerically); the
 maximally-coupled (50/50 all-0 / all-1) joint → TC = 3 · log 2 ≈ 2.079 (matches
 analytic value); |G|=1 has TC ≡ 0 by construction (excluded from the figures).
 
+## E4 — Steps vs. quality (stretch goal)
+
+Sweep T ∈ {2, 4, 8, 16} × |G| ∈ {1, 4} × 3 seeds (42–44). T = 4 row reuses the
+E2 checkpoints (100 epochs); other rows trained 80 epochs fresh. FID at 10k.
+
+```bash
+python run_e4.py --device cuda --T_values 2 4 8 16 --block_sizes 1 4 \
+                 --seeds 42 43 44 --reuse_t4_dir checkpoints_e2
+```
+
+Results (mean ± std across 3 seeds):
+
+| T  | FID `|G|=1`   | FID `|G|=4`     | Δ paired |
+|----|---------------|------------------|----------|
+| 2  | 138.43 ± 3.80 | **95.98 ± 3.74** | +42.5    |
+| 4  | 57.27 ± 1.73  | **50.85 ± 4.75** | +6.4     |
+| 8  | 32.46 ± 1.44  | **25.56 ± 0.26** | +6.9     |
+| 16 | 26.56 ± 5.58  | **13.65 ± 0.48** | +12.9    |
+
+![FID vs T](e4_fid_vs_t.png)
+![paired block advantage vs T](e4_gap_vs_t.png)
+
+- |G|=4 wins at every T (Δ > 0 with error bars clear of 0). H2 generalizes
+  beyond T = 4.
+- Both curves drop monotonically in T as expected.
+- The block advantage is largest at T = 2 (Δ ≈ 42), where each reverse step
+  must carry more mass and within-block correlations are strongest — the
+  pixel-factorized head collapses (FID ≈ 138). This is the mechanism the
+  theory predicts: block factorization absorbs local TC precisely where TC is
+  large. Gap shrinks to ≈ 6–7 at T ∈ {4, 8} as per-step posteriors soften,
+  then widens again at T = 16 (with a noisy |G|=1 std driven by one seed).
+- Loss values are not cross-T comparable (loss sums KL over T steps); only
+  within-row comparisons are meaningful, where |G|=4 always has lower loss
+  as expected from strictly higher expressiveness.
+
 ## Per-checkpoint FID utility
 
 ```bash
@@ -129,6 +164,7 @@ train_mnist.py         single-run MNIST training (exposes run_mnist())
 run_e1.py              E1 sweep
 run_e2.py              E2 sweep: train + FID + JSON dump
 run_e3.py              E3 block-joint analysis (uses |G|=4 ckpts from E2)
+run_e4.py              E4 sweep: FID vs T ∈ {2,4,8,16} × |G| ∈ {1,4}
 eval_e2_from_ckpts.py  re-score saved E2 checkpoints
 merge_e2_stats.py      paired t / Wilcoxon / sign + bootstrap CI on E2 results
 evaluate_fid.py        ad-hoc per-checkpoint FID
