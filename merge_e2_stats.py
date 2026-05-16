@@ -107,6 +107,10 @@ def main():
                         help="one or more results JSONs (run_e2.py or "
                              "eval_e2_from_ckpts.py format)")
     parser.add_argument("--out", type=str, default="results_e2_merged.json")
+    parser.add_argument("--bs_a", type=int, default=1,
+                        help="baseline block size for the paired comparison")
+    parser.add_argument("--bs_b", type=int, default=4,
+                        help="comparison block size for the paired comparison")
     args = parser.parse_args()
 
     all_runs = []
@@ -131,12 +135,15 @@ def main():
         deduped.append(r)
     all_runs = deduped
 
-    fid_pairs = collect_pairs(all_runs, 1, 4, "fid")
-    loss_pairs = collect_pairs(all_runs, 1, 4, "loss")
+    bs_a, bs_b = args.bs_a, args.bs_b
+    fid_pairs = collect_pairs(all_runs, bs_a, bs_b, "fid")
+    loss_pairs = collect_pairs(all_runs, bs_a, bs_b, "loss")
 
-    print("=== per-seed table (|G|=1 vs |G|=4) ===")
-    print(f"{'seed':>5} | {'fid bs1':>9}  {'fid bs4':>9}  {'fid Δ':>8}  |  "
-          f"{'loss bs1':>9}  {'loss bs4':>9}  {'loss Δ':>8}")
+    print(f"=== per-seed table (|G|={bs_a} vs |G|={bs_b}) ===")
+    a_hdr = f"bs{bs_a}"
+    b_hdr = f"bs{bs_b}"
+    print(f"{'seed':>5} | {'fid ' + a_hdr:>9}  {'fid ' + b_hdr:>9}  {'fid Δ':>8}  |  "
+          f"{'loss ' + a_hdr:>10}  {'loss ' + b_hdr:>10}  {'loss Δ':>8}")
     by_seed = {s: {"fid": (a, b)} for s, a, b in fid_pairs}
     for s, a, b in loss_pairs:
         by_seed.setdefault(s, {})["loss"] = (a, b)
@@ -144,12 +151,12 @@ def main():
         e = by_seed[s]
         f_str = (f"{e['fid'][0]:>9.4f}  {e['fid'][1]:>9.4f}  "
                  f"{e['fid'][0]-e['fid'][1]:>+8.4f}") if "fid" in e else " " * 32
-        l_str = (f"{e['loss'][0]:>9.4f}  {e['loss'][1]:>9.4f}  "
+        l_str = (f"{e['loss'][0]:>10.4f}  {e['loss'][1]:>10.4f}  "
                  f"{e['loss'][0]-e['loss'][1]:>+8.4f}") if "loss" in e else ""
         print(f"{s:>5} | {f_str}  |  {l_str}")
 
-    fid_diffs = [a - b for _, a, b in fid_pairs]    # positive => |G|=4 better
-    loss_diffs = [a - b for _, a, b in loss_pairs]  # positive => |G|=4 better
+    fid_diffs = [a - b for _, a, b in fid_pairs]    # positive => |G|=bs_b better
+    loss_diffs = [a - b for _, a, b in loss_pairs]  # positive => |G|=bs_b better
 
     print(f"\n=== FID (n={len(fid_diffs)} paired) ===")
     print(f"  bs1 mean = {np.mean([a for _, a, _ in fid_pairs]):.4f}")
@@ -176,9 +183,12 @@ def main():
     ci_l = bootstrap_ci(loss_diffs)
     print(f"  bootstrap 95% CI on Δ: [{ci_l['lo']:.4f}, {ci_l['hi']:.4f}]")
 
+    key_a = f"bs{bs_a}"
+    key_b = f"bs{bs_b}"
     payload = {
+        "bs_a": bs_a, "bs_b": bs_b,
         "fid": {
-            "pairs": [{"seed": s, "bs1": a, "bs4": b, "diff": a - b}
+            "pairs": [{"seed": s, key_a: a, key_b: b, "diff": a - b}
                       for s, a, b in fid_pairs],
             "t_test": ttest,
             "wilcoxon": w,
@@ -186,7 +196,7 @@ def main():
             "bootstrap_ci": ci,
         },
         "loss": {
-            "pairs": [{"seed": s, "bs1": a, "bs4": b, "diff": a - b}
+            "pairs": [{"seed": s, key_a: a, key_b: b, "diff": a - b}
                       for s, a, b in loss_pairs],
             "t_test": ttest_l,
             "bootstrap_ci": ci_l,
