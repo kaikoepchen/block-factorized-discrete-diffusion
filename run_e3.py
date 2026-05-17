@@ -287,8 +287,8 @@ def main():
     parser.add_argument("--examples_per_cat", type=int, default=3)
     parser.add_argument("--device", type=str,
                         default="cuda" if torch.cuda.is_available() else "cpu")
-    parser.add_argument("--results_json", type=str, default="results_e3.json")
-    parser.add_argument("--fig_prefix", type=str, default="e3")
+    parser.add_argument("--results_json", type=str, default="results/results_e3.json")
+    parser.add_argument("--fig_prefix", type=str, default="figures/e3")
     args = parser.parse_args()
 
     pattern = os.path.join(args.ckpt_dir, f"bs{args.block_size}_s*_best.pt")

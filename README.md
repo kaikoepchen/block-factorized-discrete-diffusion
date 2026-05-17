@@ -43,36 +43,48 @@ generated samples (pytorch-fid, InceptionV3 dims=2048).
 python run_e2.py --device cuda --epochs 100 --seeds 42 43 44 --block_sizes 1 4
 python run_e2.py --device cuda --epochs 100 --seeds 42 43 44 45 46 47 --block_sizes 2
 python eval_e2_from_ckpts.py --device cuda                  # re-score saved best.pt's
-python merge_e2_stats.py --sources results_e2_*.json --bs_a 1 --bs_b 4   # paired stats
+python merge_e2_stats.py --sources results/results_e2_*.json --bs_a 1 --bs_b 4
 ```
 
-Results (n = 6 paired seeds: 42–47, 100 epochs each, all three block sizes):
+Results (n = 6 paired seeds: 42–47, 100 epochs each, all three block sizes;
+`±` is across-seed sd, not SE of the mean — divide by √6 ≈ 2.45 for SE):
 
-| `|G|`     | ELBO loss (mean ± std) | FID @ 10k (mean ± std) |
+| `|G|`     | ELBO loss (mean ± sd)  | FID @ 10k (mean ± sd)  |
 |-----------|------------------------|------------------------|
 | 1 (pixel) | 690.43 ± 0.71          | 58.11 ± 2.96           |
 | 2 (1×2)   | 673.44 ± 0.54          | 55.63 ± 2.56           |
-| 4 (2×2)   | **656.34 ± 0.55**      | **49.08 ± 3.71**       |
+| 4 (2×2)   | 656.34 ± 0.55          | **49.08 ± 3.71**       |
 
-**FID is monotone in block size.** All three pairwise comparisons:
+Bold marks the headline claim (held-out FID); ELBO is intentionally unbolded —
+it's monotone by construction (the |G|=4 head is strictly more expressive) and
+the gap (≈ 34 nats/image, ≈ 49 bits, ≈ 200× the paired sd of 0.16) just
+confirms optimization converged. The scientific claim lives in the FID column.
+
+**FID is monotone in block size.** All three pairwise comparisons (paired by seed):
 
 | pair       | mean Δ FID | paired t | p (1-sided) | Wilcoxon p | bootstrap 95% CI | sign  |
 |------------|------------|----------|-------------|------------|------------------|-------|
-| 1 vs 2     | +2.48      | 1.435    | 0.105       | 0.109      | [−0.25, +5.87]   | 5/6   |
-| 2 vs 4     | +6.55      | 5.611    | 0.001       | 0.016      | [+4.40, +8.51]   | 6/6   |
-| **1 vs 4** | **+9.03**  | **3.88** | **0.006**   | **0.031**  | **[+4.8, +13.2]**| 5/6\* |
+| 1 vs 2     | +2.48      | 1.44     | 0.105       | 0.109      | [−0.25, +5.87]   | 5/6   |
+| 2 vs 4     | +6.55      | 5.61     | 0.001       | 0.016      | [+4.40, +8.51]   | 6/6   |
+| **1 vs 4** | **+9.03**  | **3.88** | **0.006**   | **0.031**  | **[+4.79, +13.15]** | 5/6\* |
 
-\* seed 43 is a near-tie (Δ = −0.05); the Wilcoxon treats this conservatively.
+\* The lone non-positive sign in both 1-vs rows is seed 43 — its |G|=1 model
+was an unusually good draw (FID 55.78 vs the other-seed mean of 58.58). The
+pattern is in the |G|=1 baseline, not the block models: in 2 vs 4, seed 43 is
+positive (Δ = +2.37). With n = 6, the Wilcoxon's smallest reachable p is 1/64
+≈ 0.016, which 2 vs 4 hits exactly; 1 vs 4 is one near-tie away from doing
+the same.
 
 - **The big jump is 2 → 4, not 1 → 2.** Horizontal-only 1×2 blocks help only marginally (CI crosses zero); 2×2 blocks — which capture both horizontal *and* vertical local structure — give the statistically robust win. This is consistent with the TC absorbed by |G|=2 being a strict subset of the TC absorbed by |G|=4.
-- **ELBO** is monotone too (690 → 673 → 656); the block model is strictly more expressive on its own loss, so this is largely a sanity check that optimization converged. The headline claim is the held-out FID gap.
 - **H2 supported** for |G|=4; |G|=2 directionally consistent but underpowered.
 
-Per-seed FID (Δ = |G|=1 − |G|=4):
+Per-seed paired FID differences:
 
-| seed | 42    | 43    | 44     | 45    | 46     | 47     |
-|------|-------|-------|--------|-------|--------|--------|
-| Δ    | +7.84 | −0.05 | +10.34 | +7.79 | +10.75 | +17.53 |
+| seed         | 42    | 43    | 44     | 45    | 46     | 47     |
+|--------------|-------|-------|--------|-------|--------|--------|
+| Δ FID (1−2)  | +0.98 | −2.42 | +0.44  | +3.80 | +2.05  | +10.05 |
+| Δ FID (2−4)  | +6.86 | +2.37 | +9.90  | +3.98 | +8.71  | +7.48  |
+| Δ FID (1−4)  | +7.83 | −0.05 | +10.34 | +7.79 | +10.75 | +17.53 |
 
 ### Schedule collapse
 
@@ -81,7 +93,7 @@ The learned forward schedule collapses to `α ≈ [0.06, 0.06, 0.06, 0.50]` in
 t = T, three weak earlier steps. Identical to four significant figures
 regardless of `|G|`.
 
-![learned forward schedule, all E2 runs](viz_schedule_e2.png)
+![learned forward schedule, all E2 runs](figures/viz_schedule_e2.png)
 
 Two implications:
 1. The FID comparison is at the *same* forward process across all three block
@@ -103,16 +115,17 @@ the clean image: **background** (all zeros), **mixed** (boundary), **stroke**
 python run_e3.py --device cuda
 ```
 
-Within-block TC in nats (T = 4, 3 seeds, 2048 test images, mean across blocks):
+Within-block TC in nats (T = 4, 3 seeds, 2048 test images, mean ± across-seed
+sd; "≈ 0" denotes sd < 5 × 10⁻⁵):
 
-| t     | background          | mixed               | stroke              |
-|-------|---------------------|---------------------|---------------------|
-| 1     | 0.0009              | 0.0133              | 0.0072              |
-| 2     | 0.0003              | 0.0045              | 0.0026              |
-| 3     | 0.0003              | 0.0045              | 0.0025              |
-| **4** | **0.124 ± 0.003**   | **0.389 ± 0.008**   | **0.426 ± 0.008**   |
+| t     | background           | mixed                | stroke               |
+|-------|----------------------|----------------------|----------------------|
+| 1     | 0.0009 ± ≈ 0         | 0.0133 ± 0.0005      | 0.0072 ± 0.0002      |
+| 2     | 0.0003 ± ≈ 0         | 0.0045 ± 0.0002      | 0.0026 ± 0.0003      |
+| 3     | 0.0003 ± ≈ 0         | 0.0045 ± 0.0003      | 0.0025 ± 0.0004      |
+| **4** | **0.1238 ± 0.0034**  | **0.3894 ± 0.0076**  | **0.4261 ± 0.0079**  |
 
-![within-block TC by region category](e3_tc_by_category.png)
+![within-block TC by region category](figures/e3_tc_by_category.png)
 
 Mixed / stroke ≫ background at every t — direct evidence the |G|=4 model has
 absorbed local within-block correlations exactly where the data has structure.
@@ -121,7 +134,7 @@ small t predictions are near-deterministic so TC ≈ 0 regardless. **H3
 supported**, with the framing tightened to "structured vs. homogeneous" rather
 than "stroke vs. background" (stroke interiors couple too).
 
-![joint vs product-of-marginals at t=4](e3_block_joint_examples.png)
+![joint vs product-of-marginals at t=4](figures/e3_block_joint_examples.png)
 
 Representative blocks (25/50/75% TC quantile within each category) at t = 4:
 the model's 16-d joint vs. the product of its per-pixel marginals, with the
@@ -140,22 +153,41 @@ E2 checkpoints (100 epochs); other rows trained 80 epochs fresh. FID at 10k.
 ```bash
 python run_e4.py --device cuda --T_values 2 4 8 16 --block_sizes 1 4 \
                  --seeds 42 43 44 --reuse_t4_dir checkpoints_e2
+python merge_e4_stats.py                                    # paired stats per T
 ```
 
-Results (mean ± std across 3 seeds):
+Per-row marginals (mean ± across-seed sd, n = 3):
 
-| T  | FID `|G|=1`   | FID `|G|=4`     | Δ paired |
-|----|---------------|------------------|----------|
-| 2  | 138.43 ± 3.80 | **95.98 ± 3.74** | +42.5    |
-| 4  | 57.27 ± 1.73  | **50.85 ± 4.75** | +6.4     |
-| 8  | 32.46 ± 1.44  | **25.56 ± 0.26** | +6.9     |
-| 16 | 26.56 ± 5.58  | **13.65 ± 0.48** | +12.9    |
+| T  | FID `|G|=1`   | FID `|G|=4`      |
+|----|---------------|------------------|
+| 2  | 138.43 ± 3.80 | **95.98 ± 3.74** |
+| 4  | 57.27 ± 1.73  | **50.85 ± 4.75** |
+| 8  | 32.46 ± 1.44  | **25.56 ± 0.26** |
+| 16 | 26.56 ± 5.58  | **13.65 ± 0.48** |
 
-![FID vs T](e4_fid_vs_t.png)
-![paired block advantage vs T](e4_gap_vs_t.png)
+Paired statistics on ΔFID = FID(|G|=1) − FID(|G|=4), per seed (n = 3 each):
 
-- |G|=4 wins at every T (Δ > 0 with error bars clear of 0). H2 generalizes
-  beyond T = 4.
+| T  | mean Δ FID (paired) | sd Δ | paired t | p (1-sided) | bootstrap 95% CI | sign |
+|----|---------------------|------|----------|-------------|------------------|------|
+| 2  | **+42.45**          | 6.02 | 12.21    | 0.003       | [+38.28, +49.35] | 3/3  |
+| 4  | +6.42               | 5.94 | 1.87     | 0.101       | [−0.31, +10.91]  | 2/3  |
+| 8  | **+6.90**           | 1.25 | 9.58     | 0.005       | [+5.57, +8.05]   | 3/3  |
+| 16 | **+12.91**          | 5.33 | 4.20     | 0.026       | [+8.52, +18.84]  | 3/3  |
+
+Bootstrap CIs collapse to the data min/max here: with n = 3 there are only 3³ = 27
+distinct resamples, so the 2.5 / 97.5 quantiles essentially round to the
+smallest and largest observed Δ. Treat the CI as descriptive — the t-test on
+the paired differences is the only test with finer-grained resolution at
+this sample size. Wilcoxon and exact sign tests bottom out at p = 0.125 with
+n = 3 (one-sided support is too small to clear 0.05); the t-test gets there
+via df = 2.
+
+![FID vs T](figures/e4_fid_vs_t.png)
+![paired block advantage vs T](figures/e4_gap_vs_t.png)
+
+- |G|=4 wins at every T in mean and in 3/3 sign except T=4, where seed 43 is
+  a sign-flip (Δ = −0.31) — the same baseline-favoring seed as in E2's 1-vs
+  rows. H2 generalizes beyond T = 4.
 - Both curves drop monotonically in T as expected.
 - The block advantage is largest at T = 2 (Δ ≈ 42), where each reverse step
   must carry more mass and within-block correlations are strongest — the
@@ -196,5 +228,9 @@ run_e4.py              E4 sweep: FID vs T ∈ {2,4,8,16} × |G| ∈ {1,4}
 viz_schedule.py        plot learned αₜ from E2 + E4 checkpoints
 eval_e2_from_ckpts.py  re-score saved E2 checkpoints
 merge_e2_stats.py      paired t / Wilcoxon / sign + bootstrap CI on E2 results
+merge_e4_stats.py      same, per T row, on E4 results
 evaluate_fid.py        ad-hoc per-checkpoint FID
+
+results/               all results JSONs (results_e[1-4]_*.json, schedule_summary.json)
+figures/               all plots (e3_*, e4_*, viz_schedule_e2 in {.png,.pdf})
 ```

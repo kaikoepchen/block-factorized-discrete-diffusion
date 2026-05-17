@@ -167,8 +167,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--e2_dir", type=str, default="checkpoints_e2")
     parser.add_argument("--e4_dir", type=str, default="checkpoints_e4")
-    parser.add_argument("--out_prefix", type=str, default="viz_schedule")
-    parser.add_argument("--summary_json", type=str, default="schedule_summary.json")
+    parser.add_argument("--out_prefix", type=str, default="figures/viz_schedule")
+    parser.add_argument("--summary_json", type=str, default="results/schedule_summary.json")
     args = parser.parse_args()
 
     e2_entries = scan_e2(args.e2_dir) if os.path.isdir(args.e2_dir) else []
