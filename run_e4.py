@@ -70,8 +70,8 @@ def main():
     parser.add_argument("--real_dir", type=str, default="fid_stats/real")
     parser.add_argument("--gen_root", type=str, default="fid_stats_e4")
     parser.add_argument("--keep_gen", action="store_true")
-    parser.add_argument("--results_json", type=str, default="results_e4.json")
-    parser.add_argument("--fig_prefix", type=str, default="e4")
+    parser.add_argument("--results_json", type=str, default="results/results_e4.json")
+    parser.add_argument("--fig_prefix", type=str, default="figures/e4")
     args = parser.parse_args()
 
     os.makedirs(args.save_dir, exist_ok=True)

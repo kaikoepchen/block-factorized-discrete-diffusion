@@ -106,7 +106,7 @@ def main():
     parser.add_argument("--sources", type=str, nargs="+", required=True,
                         help="one or more results JSONs (run_e2.py or "
                              "eval_e2_from_ckpts.py format)")
-    parser.add_argument("--out", type=str, default="results_e2_merged.json")
+    parser.add_argument("--out", type=str, default="results/results_e2_merged.json")
     parser.add_argument("--bs_a", type=int, default=1,
                         help="baseline block size for the paired comparison")
     parser.add_argument("--bs_b", type=int, default=4,

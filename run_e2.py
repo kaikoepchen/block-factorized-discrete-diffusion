@@ -79,7 +79,7 @@ def main():
     parser.add_argument("--gen_root", type=str, default="fid_stats_e2")
     parser.add_argument("--keep_gen", action="store_true",
                         help="keep generated image dirs after FID")
-    parser.add_argument("--results_json", type=str, default="results_e2.json",
+    parser.add_argument("--results_json", type=str, default="results/results_e2.json",
                         help="path to dump per-run results + aggregates")
     args = parser.parse_args()
 

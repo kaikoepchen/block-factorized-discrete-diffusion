@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--gen_root", type=str, default="fid_stats_e2")
     parser.add_argument("--keep_gen", action="store_true")
     parser.add_argument("--results_json", type=str,
-                        default="results_e2_from_ckpts.json")
+                        default="results/results_e2_from_ckpts.json")
     args = parser.parse_args()
 
     paths = sorted(glob.glob(os.path.join(args.ckpt_dir, "*_best.pt")))
