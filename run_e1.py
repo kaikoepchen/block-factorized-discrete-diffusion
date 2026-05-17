@@ -8,6 +8,8 @@ each (|G|=1, seed=s) and (|G|=4, seed=s) pair is trained on identical data.
 """
 
 import argparse
+import json
+
 import torch
 
 from train_synthetic import run_synthetic
@@ -29,6 +31,9 @@ def main():
     parser.add_argument("--n_eval", type=int, default=5000)
     parser.add_argument("--save_dir", type=str, default="checkpoints_synth")
     parser.add_argument("--samples_dir", type=str, default="samples")
+    parser.add_argument("--results_json", type=str,
+                        default="results/results_e1.json",
+                        help="path to dump per-run results + aggregates")
     args = parser.parse_args()
 
     floor = pixel_factorized_tv_floor(epsilon=args.epsilon)
@@ -56,6 +61,7 @@ def main():
     print("\n=== E1 summary ===")
     print(f"analytic pixel-factorized TV floor: {floor:.4f}")
     print(f"{'|G|':>4} | {'recon (mean±std)':>24} | {'block-TV (mean±std)':>24}")
+    aggregates = {}
     for bs in args.block_sizes:
         rs = [r for r in results if r["block_size"] == bs]
         recons = torch.tensor([r["final_recon"] for r in rs])
@@ -65,6 +71,32 @@ def main():
         print(f"{bs:>4} | "
               f"{recons.mean():>10.4f} ± {recon_std:<10.4f} | "
               f"{tvs.mean():>10.4f} ± {tv_std:<10.4f}")
+        aggregates[str(bs)] = {
+            "n_seeds": len(rs),
+            "recon_mean": float(recons.mean()),
+            "recon_std": float(recon_std),
+            "block_tv_mean": float(tvs.mean()),
+            "block_tv_std": float(tv_std),
+        }
+
+    payload = {
+        "config": {
+            "T": args.T, "epochs": args.epochs, "batch_size": args.batch_size,
+            "lr": args.lr, "seeds": args.seeds, "block_sizes": args.block_sizes,
+            "epsilon": args.epsilon, "n_train": args.n_train,
+            "n_eval": args.n_eval,
+        },
+        "tv_floor_analytic": floor,
+        "per_run": [
+            {k: (float(v) if isinstance(v, torch.Tensor) else v)
+             for k, v in r.items()}
+            for r in results
+        ],
+        "aggregates": aggregates,
+    }
+    with open(args.results_json, "w") as f:
+        json.dump(payload, f, indent=2)
+    print(f"\nwrote results -> {args.results_json}")
 
 
 if __name__ == "__main__":

@@ -23,16 +23,18 @@ capture the coupling; a 2×2 block head can.
 python run_e1.py --device cuda --epochs 30 --seeds 42 43 44 --block_sizes 1 4
 ```
 
-Results (T = 4, 3 seeds, ε = 0.04 noise floor):
+Results (T = 4, 3 seeds, ε = 0.04 noise floor; numbers in
+`results/results_e1.json`):
 
 | `|G|`     | recon loss (mean ± std) | block-TV to ground truth |
 |-----------|-------------------------|--------------------------|
-| 1 (pixel) | 1363.10 ± 3.13          | 0.378 ± 0.047            |
-| 4 (2×2)   | **1139.88 ± 3.93**      | **0.056 ± 0.006**        |
+| 1 (pixel) | 1363.05 ± 4.01          | 0.365 ± 0.062            |
+| 4 (2×2)   | **1139.85 ± 5.23**      | **0.056 ± 0.004**        |
 
 `block-TV` is the TV distance between the model's induced 16-state block
-distribution and the synthetic ground truth. ≈ 7× reduction with the block head.
-**H1 supported.**
+distribution and the synthetic ground truth. ≈ 6.5× reduction with the block
+head; the analytic best-possible TV for a pixel-factorized model on this
+dataset is 0.72 (printed by the script for context). **H1 supported.**
 
 ## E2 — Block size vs. FID on MNIST (H2)
 
@@ -211,9 +213,18 @@ via df = 2.
 
 ## Per-checkpoint FID utility
 
+Ad-hoc evaluation for an individual `best.pt` (mostly for spot-checks; the
+E2/E4 sweeps already report FID per run). Example using a real E2 checkpoint:
+
 ```bash
-python evaluate_fid.py --checkpoint checkpoints/best.pt --T 4 --n_samples 10000
-python -m pytorch_fid fid_stats/real fid_stats/generated
+python evaluate_fid.py \
+    --checkpoint checkpoints_e2/bs4_s42_best.pt \
+    --T 4 --n_samples 10000 \
+    --real_dir fid_stats/real \
+    --gen_dir  fid_stats/spot_check/bs4_s42
+
+# or, if you already have a generated-image dir, score it directly:
+python -m pytorch_fid fid_stats/real fid_stats/spot_check/bs4_s42
 ```
 
 ## Project structure
