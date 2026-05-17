@@ -40,3 +40,7 @@ samples/
 
 # claude
 .claude/
+
+# local-only docs (kept out of GitHub)
+REPORT_OUTLINE.md
+NEXT_STEPS.md
