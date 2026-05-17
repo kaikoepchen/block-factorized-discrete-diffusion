@@ -198,6 +198,16 @@ via df = 2.
 - Loss values are not cross-T comparable (loss sums KL over T steps); only
   within-row comparisons are meaningful, where |G|=4 always has lower loss
   as expected from strictly higher expressiveness.
+- **Schedule diverges at T = 2.** The learned forward schedule collapses to
+  the same near-no-op-then-one-big-jump shape at T ∈ {4, 8, 16} regardless
+  of `|G|` (same pattern as in E2). At T = 2 the schedules differ: |G|=4
+  reaches α ≈ 0.50 at t = T while |G|=1 only reaches α ≈ 0.38, suggesting
+  the pixel-factorized head is forced to keep the forward less destructive
+  to retain any chance of reconstruction. The T = 2 FID gap therefore
+  conflates a reverse-head effect with a forward-schedule effect — flagging,
+  not removing, the claim (block head still wins by ~42 FID points).
+
+![learned forward schedule, all E4 T values](figures/viz_schedule_e4.png)
 
 ## Per-checkpoint FID utility
 
