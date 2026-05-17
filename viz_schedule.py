@@ -28,6 +28,9 @@ from fldd.forward import LearnedForwardProcess
 CKPT_E2_RE = re.compile(r"bs(\d+)_s(\d+)_best\.pt$")
 CKPT_E4_RE = re.compile(r"T(\d+)_bs(\d+)_s(\d+)_best\.pt$")
 COLORS_BS = {1: "#4393c3", 2: "#7fbf7b", 4: "#d6604d"}
+# x-jitter per |G| so otherwise-coincident curves render side-by-side
+JITTER_BS = {1: -0.08, 2: 0.0, 4: 0.08}
+MARKERS_BS = {1: "o", 2: "s", 4: "^"}
 
 
 def alphas_from_ckpt(path, device="cpu"):
@@ -77,17 +80,20 @@ def plot_e2(entries, out_prefix):
     for e in entries:
         bs = e["block_size"]
         color = COLORS_BS.get(bs, "gray")
+        marker = MARKERS_BS.get(bs, "o")
+        xs_j = xs + JITTER_BS.get(bs, 0.0)
         label = f"|G|={bs}" if bs not in handles_done else None
         handles_done.add(bs)
-        ax.plot(xs, e["alphas"], marker="o", color=color, alpha=0.55, lw=1.2,
-                label=label)
+        ax.plot(xs_j, e["alphas"], marker=marker, color=color, alpha=0.5,
+                lw=1.0, ms=5, label=label)
 
     # overlay per-bs mean
     for bs in block_sizes:
         rows = np.array([e["alphas"] for e in entries if e["block_size"] == bs])
         if len(rows) > 0:
-            ax.plot(xs, rows.mean(axis=0), color=COLORS_BS.get(bs, "gray"),
-                    lw=2.5, zorder=10)
+            xs_j = xs + JITTER_BS.get(bs, 0.0)
+            ax.plot(xs_j, rows.mean(axis=0), color=COLORS_BS.get(bs, "gray"),
+                    marker=MARKERS_BS.get(bs, "o"), ms=8, lw=2.0, zorder=10)
 
     ax.set_xticks(xs)
     ax.set_xlabel("diffusion step t")
@@ -115,22 +121,27 @@ def plot_e4(entries, out_prefix):
 
     for ax, T in zip(axes[0], Ts):
         xs = np.arange(1, T + 1)
+        # scale jitter by step spacing so dense-T panels don't crowd
+        jitter_scale = max(0.5, T / 4.0)
         handles_done = set()
         for e in entries:
             if e["T"] != T:
                 continue
             bs = e["block_size"]
             color = COLORS_BS.get(bs, "gray")
+            marker = MARKERS_BS.get(bs, "o")
+            xs_j = xs + JITTER_BS.get(bs, 0.0) * jitter_scale
             label = f"|G|={bs}" if bs not in handles_done else None
             handles_done.add(bs)
-            ax.plot(xs, e["alphas"], marker="o", color=color, alpha=0.55,
-                    lw=1.0, label=label)
+            ax.plot(xs_j, e["alphas"], marker=marker, color=color, alpha=0.5,
+                    lw=1.0, ms=4, label=label)
         for bs in block_sizes:
             rows = np.array([e["alphas"] for e in entries
                              if e["T"] == T and e["block_size"] == bs])
             if len(rows) > 0:
-                ax.plot(xs, rows.mean(axis=0), color=COLORS_BS.get(bs, "gray"),
-                        lw=2.5, zorder=10)
+                xs_j = xs + JITTER_BS.get(bs, 0.0) * jitter_scale
+                ax.plot(xs_j, rows.mean(axis=0), color=COLORS_BS.get(bs, "gray"),
+                        marker=MARKERS_BS.get(bs, "o"), ms=6, lw=2.0, zorder=10)
         ax.set_xticks(xs)
         ax.set_xlabel("step t")
         ax.set_title(f"T = {T}")
@@ -173,6 +184,13 @@ def main():
 
     e2_entries = scan_e2(args.e2_dir) if os.path.isdir(args.e2_dir) else []
     e4_entries = scan_e4(args.e4_dir) if os.path.isdir(args.e4_dir) else []
+
+    # E4's T=4 row reuses E2 checkpoints; pull the |G| ∈ {1, 4} subset of E2
+    # into the E4 plot so all T panels are present.
+    e4_block_sizes = {e["block_size"] for e in e4_entries} or {1, 4}
+    e4_entries = e4_entries + [
+        e for e in e2_entries if e["block_size"] in e4_block_sizes
+    ]
 
     print(f"E2: scanned {len(e2_entries)} checkpoints in {args.e2_dir}")
     for e in e2_entries:
