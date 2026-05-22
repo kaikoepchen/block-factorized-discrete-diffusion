@@ -1,0 +1,364 @@
+{
+  "rows": [
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 42,
+      "parasitic_Hq": 531.273979589811,
+      "reported_loss": 689.5264829977965,
+      "corrected_elbo": 158.2525034079855,
+      "corrected_elbo_per_step": 39.563125851996375,
+      "Hq_fraction": 0.7704910437667828
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 43,
+      "parasitic_Hq": 531.258164258283,
+      "reported_loss": 691.1034836728348,
+      "corrected_elbo": 159.8453194145518,
+      "corrected_elbo_per_step": 39.96132985363795,
+      "Hq_fraction": 0.7687100077038219
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 44,
+      "parasitic_Hq": 531.3150110771265,
+      "reported_loss": 690.274636553903,
+      "corrected_elbo": 158.9596254767764,
+      "corrected_elbo_per_step": 39.7399063691941,
+      "Hq_fraction": 0.7697153899926563
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 45,
+      "parasitic_Hq": 531.2661243292612,
+      "reported_loss": 690.902,
+      "corrected_elbo": 159.63587567073887,
+      "corrected_elbo_per_step": 39.90896891768472,
+      "Hq_fraction": 0.7689457033403596
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 46,
+      "parasitic_Hq": 531.3412982450832,
+      "reported_loss": 690.2637604281433,
+      "corrected_elbo": 158.92246218306013,
+      "corrected_elbo_per_step": 39.73061554576503,
+      "Hq_fraction": 0.7697656007835515
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 47,
+      "parasitic_Hq": 531.2663338043124,
+      "reported_loss": 691.538587912535,
+      "corrected_elbo": 160.27225410822268,
+      "corrected_elbo_per_step": 40.06806352705567,
+      "Hq_fraction": 0.7682381621074575
+    },
+    {
+      "T": 4,
+      "block_size": 2,
+      "seed": 42,
+      "parasitic_Hq": 531.273302833526,
+      "reported_loss": 672.6380310058594,
+      "corrected_elbo": 141.36472817233334,
+      "corrected_elbo_per_step": 35.341182043083336,
+      "Hq_fraction": 0.7898353621769836
+    },
+    {
+      "T": 4,
+      "block_size": 2,
+      "seed": 43,
+      "parasitic_Hq": 531.2587443472298,
+      "reported_loss": 673.8862568129841,
+      "corrected_elbo": 142.6275124657543,
+      "corrected_elbo_per_step": 35.65687811643858,
+      "Hq_fraction": 0.7883507624264608
+    },
+    {
+      "T": 4,
+      "block_size": 2,
+      "seed": 44,
+      "parasitic_Hq": 531.308791639447,
+      "reported_loss": 673.1289312900641,
+      "corrected_elbo": 141.82013965061708,
+      "corrected_elbo_per_step": 35.45503491265427,
+      "Hq_fraction": 0.789312072237311
+    },
+    {
+      "T": 4,
+      "block_size": 2,
+      "seed": 45,
+      "parasitic_Hq": 531.2663176915212,
+      "reported_loss": 673.6413220788678,
+      "corrected_elbo": 142.37500438734662,
+      "corrected_elbo_per_step": 35.593751096836655,
+      "Hq_fraction": 0.7886486476987856
+    },
+    {
+      "T": 4,
+      "block_size": 2,
+      "seed": 46,
+      "parasitic_Hq": 531.2544661842379,
+      "reported_loss": 673.2374635354066,
+      "corrected_elbo": 141.9829973511687,
+      "corrected_elbo_per_step": 35.49574933779218,
+      "Hq_fraction": 0.789104134809186
+    },
+    {
+      "T": 4,
+      "block_size": 2,
+      "seed": 47,
+      "parasitic_Hq": 531.4704828410244,
+      "reported_loss": 674.1024138621794,
+      "corrected_elbo": 142.63193102115508,
+      "corrected_elbo_per_step": 35.65798275528877,
+      "Hq_fraction": 0.788412074948724
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 42,
+      "parasitic_Hq": 531.2722796395583,
+      "reported_loss": 655.6268171000685,
+      "corrected_elbo": 124.35453746051019,
+      "corrected_elbo_per_step": 31.088634365127547,
+      "Hq_fraction": 0.8103272559677346
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 43,
+      "parasitic_Hq": 531.2582125992875,
+      "reported_loss": 656.8405871269031,
+      "corrected_elbo": 125.58237452761557,
+      "corrected_elbo_per_step": 31.395593631903893,
+      "Hq_fraction": 0.8088084430395396
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 44,
+      "parasitic_Hq": 531.3076315319032,
+      "reported_loss": 656.2034258720203,
+      "corrected_elbo": 124.89579434011705,
+      "corrected_elbo_per_step": 31.223948585029262,
+      "Hq_fraction": 0.8096690912971924
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 45,
+      "parasitic_Hq": 531.2647627445951,
+      "reported_loss": 656.8400426359258,
+      "corrected_elbo": 125.57527989133064,
+      "corrected_elbo_per_step": 31.39381997283266,
+      "Hq_fraction": 0.8088190857131792
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 46,
+      "parasitic_Hq": 531.2536524444919,
+      "reported_loss": 656.2970671042418,
+      "corrected_elbo": 125.04341465974994,
+      "corrected_elbo_per_step": 31.260853664937486,
+      "Hq_fraction": 0.8094713188168356
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 47,
+      "parasitic_Hq": 531.4638779296376,
+      "reported_loss": 657.2333320552467,
+      "corrected_elbo": 125.76945412560906,
+      "corrected_elbo_per_step": 31.442363531402265,
+      "Hq_fraction": 0.8086380468070403
+    },
+    {
+      "T": 16,
+      "block_size": 1,
+      "seed": 42,
+      "parasitic_Hq": 2657.547532445016,
+      "reported_loss": 2911.073027260283,
+      "corrected_elbo": 253.5254948152674,
+      "corrected_elbo_per_step": 15.845343425954212,
+      "Hq_fraction": 0.9129099502344434
+    },
+    {
+      "T": 16,
+      "block_size": 1,
+      "seed": 43,
+      "parasitic_Hq": 2658.062876889457,
+      "reported_loss": 2913.6217839167666,
+      "corrected_elbo": 255.5589070273095,
+      "corrected_elbo_per_step": 15.972431689206843,
+      "Hq_fraction": 0.9122882357490604
+    },
+    {
+      "T": 16,
+      "block_size": 1,
+      "seed": 44,
+      "parasitic_Hq": 2657.313932686616,
+      "reported_loss": 2908.6026908678887,
+      "corrected_elbo": 251.28875818127244,
+      "corrected_elbo_per_step": 15.705547386329528,
+      "Hq_fraction": 0.9136049901314328
+    },
+    {
+      "T": 16,
+      "block_size": 4,
+      "seed": 42,
+      "parasitic_Hq": 2657.1533812859334,
+      "reported_loss": 2875.228526580028,
+      "corrected_elbo": 218.07514529409445,
+      "corrected_elbo_per_step": 13.629696580880903,
+      "Hq_fraction": 0.9241538043748173
+    },
+    {
+      "T": 16,
+      "block_size": 4,
+      "seed": 43,
+      "parasitic_Hq": 2657.9932145876564,
+      "reported_loss": 2876.6000011476694,
+      "corrected_elbo": 218.606786560013,
+      "corrected_elbo_per_step": 13.662924160000813,
+      "Hq_fraction": 0.9240051496653007
+    },
+    {
+      "T": 16,
+      "block_size": 4,
+      "seed": 44,
+      "parasitic_Hq": 2657.264379771697,
+      "reported_loss": 2873.1633102547407,
+      "corrected_elbo": 215.89893048304384,
+      "corrected_elbo_per_step": 13.49368315519024,
+      "Hq_fraction": 0.9248567146488093
+    },
+    {
+      "T": 2,
+      "block_size": 1,
+      "seed": 42,
+      "parasitic_Hq": 190.20723850927902,
+      "reported_loss": 317.58287061381543,
+      "corrected_elbo": 127.37563210453641,
+      "corrected_elbo_per_step": 63.687816052268204,
+      "Hq_fraction": 0.5989215921553065
+    },
+    {
+      "T": 2,
+      "block_size": 1,
+      "seed": 43,
+      "parasitic_Hq": 188.97880026318106,
+      "reported_loss": 316.7617743076422,
+      "corrected_elbo": 127.78297404446116,
+      "corrected_elbo_per_step": 63.89148702223058,
+      "Hq_fraction": 0.5965959771384629
+    },
+    {
+      "T": 2,
+      "block_size": 1,
+      "seed": 44,
+      "parasitic_Hq": 188.45710742473938,
+      "reported_loss": 317.2427173842732,
+      "corrected_elbo": 128.78560995953382,
+      "corrected_elbo_per_step": 64.39280497976691,
+      "Hq_fraction": 0.5940470721553649
+    },
+    {
+      "T": 2,
+      "block_size": 4,
+      "seed": 42,
+      "parasitic_Hq": 177.1329286642773,
+      "reported_loss": 287.09119144667926,
+      "corrected_elbo": 109.95826278240196,
+      "corrected_elbo_per_step": 54.97913139120098,
+      "Hq_fraction": 0.6169918616161226
+    },
+    {
+      "T": 2,
+      "block_size": 4,
+      "seed": 43,
+      "parasitic_Hq": 177.3948933740203,
+      "reported_loss": 287.7821384984204,
+      "corrected_elbo": 110.3872451244001,
+      "corrected_elbo_per_step": 55.19362256220005,
+      "Hq_fraction": 0.616420790739916
+    },
+    {
+      "T": 2,
+      "block_size": 4,
+      "seed": 44,
+      "parasitic_Hq": 177.100035712071,
+      "reported_loss": 287.7296104757195,
+      "corrected_elbo": 110.62957476364849,
+      "corrected_elbo_per_step": 55.314787381824246,
+      "Hq_fraction": 0.6155085513071163
+    },
+    {
+      "T": 8,
+      "block_size": 1,
+      "seed": 42,
+      "parasitic_Hq": 1240.002178333389,
+      "reported_loss": 1431.3632269965278,
+      "corrected_elbo": 191.36104866313872,
+      "corrected_elbo_per_step": 23.92013108289234,
+      "Hq_fraction": 0.8663085336734008
+    },
+    {
+      "T": 8,
+      "block_size": 1,
+      "seed": 43,
+      "parasitic_Hq": 1242.3626808933932,
+      "reported_loss": 1432.4210442437065,
+      "corrected_elbo": 190.05836335031336,
+      "corrected_elbo_per_step": 23.75729541878917,
+      "Hq_fraction": 0.8673166914755425
+    },
+    {
+      "T": 8,
+      "block_size": 1,
+      "seed": 44,
+      "parasitic_Hq": 1239.9241066546333,
+      "reported_loss": 1428.7799844334268,
+      "corrected_elbo": 188.85587777879346,
+      "corrected_elbo_per_step": 23.606984722349182,
+      "Hq_fraction": 0.8678201823679081
+    },
+    {
+      "T": 8,
+      "block_size": 4,
+      "seed": 42,
+      "parasitic_Hq": 1239.8651078196133,
+      "reported_loss": 1397.2776129306892,
+      "corrected_elbo": 157.41250511107592,
+      "corrected_elbo_per_step": 19.67656313888449,
+      "Hq_fraction": 0.8873434286398431
+    },
+    {
+      "T": 8,
+      "block_size": 4,
+      "seed": 43,
+      "parasitic_Hq": 1240.4164647457576,
+      "reported_loss": 1397.4236544095552,
+      "corrected_elbo": 157.0071896637976,
+      "corrected_elbo_per_step": 19.6258987079747,
+      "Hq_fraction": 0.8876452469024958
+    },
+    {
+      "T": 8,
+      "block_size": 4,
+      "seed": 44,
+      "parasitic_Hq": 1239.898707801542,
+      "reported_loss": 1394.5286273141191,
+      "corrected_elbo": 154.6299195125771,
+      "corrected_elbo_per_step": 19.328739939072136,
+      "Hq_fraction": 0.8891167119240884
+    }
+  ]
+}

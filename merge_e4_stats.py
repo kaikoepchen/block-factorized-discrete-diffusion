@@ -2,14 +2,15 @@
 
 Reuses the stats primitives from merge_e2_stats.py. With n=3 per T,
 non-parametric tests bottom out at p=0.125 (one-sided sign / Wilcoxon
-support is too small to reach 0.05). The paired t-test (df=2) and the
-bootstrap CI are the only sub-0.05 routes; we report all four for parity
-with E2 and let the reader weigh the small-n caveat.
+support is too small to reach 0.05). The paired t-test (df=2) is the only
+sub-0.05 route. We deliberately do NOT report a bootstrap CI here: with n=3
+the resample distribution collapses to the data extrema, so the CI bounds are
+just min/max of the three diffs and convey no extra information.
 """
 
 import json
 
-from merge_e2_stats import bootstrap_ci, paired_t, sign_test, wilcoxon
+from merge_e2_stats import paired_t, sign_test, wilcoxon
 
 
 def main():
@@ -35,7 +36,6 @@ def main():
         ttest = paired_t(diffs)
         w = wilcoxon(diffs)
         st = sign_test(diffs)
-        ci = bootstrap_ci(diffs)
         print(f"\n=== T={T}  (n={len(diffs)}) ===")
         for p in pairs:
             print(f"  seed {p['seed']}: bs1={p['bs1']:.4f}  bs4={p['bs4']:.4f}  "
@@ -45,10 +45,9 @@ def main():
         if w:
             print(f"  Wilcoxon p(one-sided) = {w['p_one_sided']:.4f}")
         print(f"  sign = {st['n_positive']}/{st['n']}   p(one-sided) = {st['p_one_sided']:.4f}")
-        print(f"  bootstrap 95% CI on Δ = [{ci['lo']:+.4f}, {ci['hi']:+.4f}]")
         out.append({
             "T": T, "pairs": pairs, "t_test": ttest,
-            "wilcoxon": w, "sign_test": st, "bootstrap_ci": ci,
+            "wilcoxon": w, "sign_test": st,
         })
 
     with open("results/results_e4_paired.json", "w") as f:

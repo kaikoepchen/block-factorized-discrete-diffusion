@@ -84,123 +84,123 @@
     }
   },
   "sources": [
-    "results_e2_merged.json",
-    "results_e2_bs2.json"
+    "results/results_e2_merged.json",
+    "results/results_e2_bs2.json"
   ],
   "per_run": [
     {
       "block_size": 1,
       "seed": 42,
       "fid": 58.57986039656264,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 1,
       "seed": 43,
       "fid": 55.784508339662466,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 1,
       "seed": 44,
       "fid": 57.21493165855766,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 4,
       "seed": 42,
       "fid": 50.74490887207784,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 4,
       "seed": 43,
       "fid": 55.834917486865564,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 4,
       "seed": 44,
       "fid": 46.87679048120755,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 1,
       "seed": 45,
       "fid": 55.4859,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 1,
       "seed": 46,
       "fid": 58.18852467503342,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 1,
       "seed": 47,
       "fid": 63.41281384724455,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 4,
       "seed": 45,
       "fid": 47.70032656379563,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 4,
       "seed": 46,
       "fid": 47.434554715243465,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 4,
       "seed": 47,
       "fid": 45.878695636939185,
-      "source": "results_e2_merged.json"
+      "source": "results/results_e2_merged.json"
     },
     {
       "block_size": 2,
       "seed": 42,
       "fid": 57.60106322678651,
       "loss": 672.6380310058594,
-      "source": "results_e2_bs2.json"
+      "source": "results/results_e2_bs2.json"
     },
     {
       "block_size": 2,
       "seed": 43,
       "fid": 58.2065748888012,
       "loss": 673.8862568129841,
-      "source": "results_e2_bs2.json"
+      "source": "results/results_e2_bs2.json"
     },
     {
       "block_size": 2,
       "seed": 44,
       "fid": 56.77744592639425,
       "loss": 673.1289312900641,
-      "source": "results_e2_bs2.json"
+      "source": "results/results_e2_bs2.json"
     },
     {
       "block_size": 2,
       "seed": 45,
       "fid": 51.68427746006873,
       "loss": 673.6413220788678,
-      "source": "results_e2_bs2.json"
+      "source": "results/results_e2_bs2.json"
     },
     {
       "block_size": 2,
       "seed": 46,
       "fid": 56.14239898812107,
       "loss": 673.2374635354066,
-      "source": "results_e2_bs2.json"
+      "source": "results/results_e2_bs2.json"
     },
     {
       "block_size": 2,
       "seed": 47,
       "fid": 53.36060612663087,
       "loss": 674.1024138621794,
-      "source": "results_e2_bs2.json"
+      "source": "results/results_e2_bs2.json"
     }
   ]
 }
