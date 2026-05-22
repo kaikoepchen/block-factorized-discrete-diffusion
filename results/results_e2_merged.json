@@ -1,4 +1,6 @@
 {
+  "bs_a": 1,
+  "bs_b": 4,
   "fid": {
     "pairs": [
       {
@@ -119,10 +121,10 @@
     }
   },
   "sources": [
-    "results_e2_from_ckpts.json",
-    "results_e2_extra_bs1_s45.json",
-    "results_e2_extra_bs1.json",
-    "results_e2_extra_bs4.json"
+    "results/results_e2_from_ckpts.json",
+    "results/results_e2_extra_bs1_s45.json",
+    "results/results_e2_extra_bs1.json",
+    "results/results_e2_extra_bs4.json"
   ],
   "per_run": [
     {
@@ -130,84 +132,84 @@
       "seed": 42,
       "fid": 58.57986039656264,
       "loss": 689.5264829977965,
-      "source": "results_e2_from_ckpts.json"
+      "source": "results/results_e2_from_ckpts.json"
     },
     {
       "block_size": 1,
       "seed": 43,
       "fid": 55.784508339662466,
       "loss": 691.1034836728348,
-      "source": "results_e2_from_ckpts.json"
+      "source": "results/results_e2_from_ckpts.json"
     },
     {
       "block_size": 1,
       "seed": 44,
       "fid": 57.21493165855766,
       "loss": 690.274636553903,
-      "source": "results_e2_from_ckpts.json"
+      "source": "results/results_e2_from_ckpts.json"
     },
     {
       "block_size": 4,
       "seed": 42,
       "fid": 50.74490887207784,
       "loss": 655.6268171000685,
-      "source": "results_e2_from_ckpts.json"
+      "source": "results/results_e2_from_ckpts.json"
     },
     {
       "block_size": 4,
       "seed": 43,
       "fid": 55.834917486865564,
       "loss": 656.8405871269031,
-      "source": "results_e2_from_ckpts.json"
+      "source": "results/results_e2_from_ckpts.json"
     },
     {
       "block_size": 4,
       "seed": 44,
       "fid": 46.87679048120755,
       "loss": 656.2034258720203,
-      "source": "results_e2_from_ckpts.json"
+      "source": "results/results_e2_from_ckpts.json"
     },
     {
       "block_size": 1,
       "seed": 45,
       "fid": 55.4859,
       "loss": 690.902,
-      "source": "results_e2_extra_bs1_s45.json"
+      "source": "results/results_e2_extra_bs1_s45.json"
     },
     {
       "block_size": 1,
       "seed": 46,
       "fid": 58.18852467503342,
       "loss": 690.2637604281433,
-      "source": "results_e2_extra_bs1.json"
+      "source": "results/results_e2_extra_bs1.json"
     },
     {
       "block_size": 1,
       "seed": 47,
       "fid": 63.41281384724455,
       "loss": 691.538587912535,
-      "source": "results_e2_extra_bs1.json"
+      "source": "results/results_e2_extra_bs1.json"
     },
     {
       "block_size": 4,
       "seed": 45,
       "fid": 47.70032656379563,
       "loss": 656.8400426359258,
-      "source": "results_e2_extra_bs4.json"
+      "source": "results/results_e2_extra_bs4.json"
     },
     {
       "block_size": 4,
       "seed": 46,
       "fid": 47.434554715243465,
       "loss": 656.2970671042418,
-      "source": "results_e2_extra_bs4.json"
+      "source": "results/results_e2_extra_bs4.json"
     },
     {
       "block_size": 4,
       "seed": 47,
       "fid": 45.878695636939185,
       "loss": 657.2333320552467,
-      "source": "results_e2_extra_bs4.json"
+      "source": "results/results_e2_extra_bs4.json"
     }
   ]
 }

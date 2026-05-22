@@ -44,22 +44,29 @@ def compute_elbo_loss(model, forward_process, x, T, block_size=1):
     target_pixel_prob = is_first * x + (1.0 - is_first) * target_pixel_prob
 
     if block_size == 1:
-        # pixel-factorized: binary cross-entropy
+        # pixel-factorized: KL[q(z_s|x) || p_theta(z_s|z_t)] per pixel.
+        # KL = cross-entropy(target, pred) - H[target]. Subtracting the target
+        # entropy H[q] is what makes this the true ELBO term rather than CE.
         pred_prob = torch.sigmoid(logits).clamp(1e-7, 1 - 1e-7)
-        bce = -(target_pixel_prob * torch.log(pred_prob)
-                + (1 - target_pixel_prob) * torch.log(1 - pred_prob))
-        reconstruction_loss = T * bce.sum(dim=(1, 2, 3)).mean()
+        tp = target_pixel_prob
+        bce = -(tp * torch.log(pred_prob) + (1 - tp) * torch.log(1 - pred_prob))
+        ent = -(tp * torch.log(tp.clamp_min(1e-12))
+                + (1 - tp) * torch.log((1 - tp).clamp_min(1e-12)))
+        kl = bce - ent
+        reconstruction_loss = T * kl.sum(dim=(1, 2, 3)).mean()
     else:
-        # block-factorized: cross-entropy over block categorical
+        # block-factorized: KL over the block categorical = CE - H[target].
         # target: product of Bernoullis -> (B, K^|G|, Hb, Wb)
         target_dist = compute_block_target(target_pixel_prob, block_size)
 
         # predicted: logits -> log_softmax over block states
         log_pred = F.log_softmax(logits, dim=1)
 
-        # cross-entropy: -sum_s target(s) * log pred(s)
+        # KL = -sum_s target(s) * log pred(s)  +  sum_s target(s) * log target(s)
         ce = -(target_dist * log_pred).sum(dim=1)  # (B, Hb, Wb)
-        reconstruction_loss = T * ce.sum(dim=(1, 2)).mean()
+        ent = -(target_dist * torch.log(target_dist.clamp_min(1e-12))).sum(dim=1)
+        kl = ce - ent
+        reconstruction_loss = T * kl.sum(dim=(1, 2)).mean()
 
     # prior loss: KL[q(z_T|x) || Uniform]
     prior_loss = forward_process.kl_prior(x)

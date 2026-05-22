@@ -1,0 +1,28 @@
+{
+  "family": [
+    "1v2",
+    "1v4",
+    "2v4"
+  ],
+  "alpha": 0.05,
+  "results": [
+    {
+      "comparison": "2v4",
+      "p_raw_two_sided": 0.0024869812503918176,
+      "p_holm": 0.007460943751175453,
+      "reject_at_0.05": true
+    },
+    {
+      "comparison": "1v4",
+      "p_raw_two_sided": 0.011619921612251893,
+      "p_holm": 0.023239843224503787,
+      "reject_at_0.05": true
+    },
+    {
+      "comparison": "1v2",
+      "p_raw_two_sided": 0.21066216688085415,
+      "p_holm": 0.21066216688085415,
+      "reject_at_0.05": false
+    }
+  ]
+}
