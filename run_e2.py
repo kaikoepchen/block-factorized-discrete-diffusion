@@ -74,6 +74,9 @@ def main():
     parser.add_argument("--device", type=str,
                         default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--n_fid_samples", type=int, default=10000)
+    parser.add_argument("--val_size", type=int, default=5000,
+                        help="held-out val images carved from train for "
+                             "val-ELBO checkpoint selection (0 disables)")
     parser.add_argument("--save_dir", type=str, default="checkpoints_e2")
     parser.add_argument("--real_dir", type=str, default="fid_stats/real")
     parser.add_argument("--gen_root", type=str, default="fid_stats_e2")
@@ -99,14 +102,19 @@ def main():
                 batch_size=args.batch_size, lr=args.lr,
                 device=args.device, save_dir=args.save_dir,
                 save_ckpt_as_best=f"bs{bs}_s{seed}_best.pt",
+                save_ckpt_as_valbest=f"bs{bs}_s{seed}_valbest.pt",
                 save_ckpt_as_final=f"bs{bs}_s{seed}_final.pt",
+                val_size=args.val_size, restore="valbest",
                 sample_every=0, samples_dir=None,
                 verbose=True,
             )
             print(f"  final_loss={r['final_loss']:.4f} "
                   f"best_loss={r['best_loss']:.4f} "
-                  f"best_epoch={r['best_epoch']}")
-            print(f"  alphas: {[round(a, 3) for a in r['final_alphas']]}")
+                  f"best_val={r['best_val']:.4f} "
+                  f"val_epoch={r['best_val_epoch']} "
+                  f"(FID model = val-best epoch {r['restored']['epoch']})")
+            print(f"  selected alphas: {[round(a, 4) for a in r['selected_alphas']]}")
+            print(f"  final    alphas: {[round(a, 4) for a in r['final_alphas']]}")
 
             gen_dir = os.path.join(args.gen_root, f"bs{bs}_s{seed}")
             print(f"  generating {args.n_fid_samples} samples -> {gen_dir}")
@@ -131,6 +139,10 @@ def main():
                 "final_loss": r["final_loss"],
                 "best_loss": r["best_loss"],
                 "best_epoch": r["best_epoch"],
+                "best_val": r["best_val"],
+                "best_val_epoch": r["best_val_epoch"],
+                "selected_alphas": r["selected_alphas"],
+                "final_alphas": r["final_alphas"],
                 "fid": fid,
             })
 
