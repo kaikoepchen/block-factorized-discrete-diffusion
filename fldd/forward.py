@@ -24,15 +24,33 @@ class LearnedForwardProcess(nn.Module):
         self.logits = nn.Parameter(torch.zeros(T))
 
     def get_alphas(self):
-        """Return flip probabilities alpha_1, ..., alpha_T in [0, 0.5).
+        """Return flip probabilities alpha_1, ..., alpha_T in (0, 0.5).
 
-        Monotonically increasing via cumulative softplus, then sigmoid
-        to keep in (0, 0.5).
+        Monotone schedule via cumulative softplus through a shifted sigmoid:
+
+            alpha_t = 0.5 * sigmoid(sum_{i<=t} softplus(logits_i) - OFFSET).
+
+        OFFSET sets both the structural floor 0.5*sigmoid(-OFFSET) and the init.
+        We use OFFSET = 6.0: floor = 0.5*sigmoid(-6) ~= 0.0012 (effectively none),
+        and the logits=0 init gives alpha ~= [0.002, 0.005, 0.01, 0.02] — a LOW,
+        near-no-corruption start, so the schedule has full room to learn upward
+        and any collapse cannot be blamed on initialization.
+
+        History of this method (why OFFSET=6 is the right test):
+          * OFFSET=2.0 (originally committed) has a hard floor of
+            0.5*sigmoid(-2)=0.0596; every early alpha pinned onto it across all
+            18 E2 runs, so the "schedule collapse to [0.06,...]" was that floor.
+          * A floor-free CTMC form  alpha = 0.5*(1 - exp(-cumsum))  removes the
+            floor but *initializes* at high corruption alpha~[0.25,0.38,0.44,0.47]
+            and training collapsed it to alpha == 0.5 everywhere (init confound).
+          * OFFSET=6.0 is confound-free: low floor AND low init. If the schedule
+            still saturates, that is genuine non-identifiability (reframe as
+            block-factorized diffusion under a degenerate schedule); if it learns
+            a graded ramp that differs across seeds/|G|, the FLDD story holds.
         """
-        increments = F.softplus(self.logits)
-        cumulative = torch.cumsum(increments, dim=0)
-        # map to (0, 0.5) — sigmoid gives (0,1), multiply by 0.5
-        alphas = 0.5 * torch.sigmoid(cumulative - 2.0)
+        OFFSET = 6.0
+        cumulative = torch.cumsum(F.softplus(self.logits), dim=0)
+        alphas = 0.5 * torch.sigmoid(cumulative - OFFSET)
         return alphas
 
     def q_zt_given_x(self, x, t_idx):

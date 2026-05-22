@@ -6,13 +6,15 @@ from tqdm import tqdm
 from fldd.data import get_binarized_mnist
 from fldd.forward import LearnedForwardProcess
 from fldd.unet import UNet
-from fldd.train import train_epoch
+from fldd.train import train_epoch, evaluate_elbo
 from fldd.sample import sample, save_samples
 
 
 def run_mnist(block_size=1, seed=42, T=4, epochs=100, batch_size=128, lr=3e-4,
               device="cuda", save_dir="checkpoints",
               save_ckpt_as_best="best.pt", save_ckpt_as_final="final.pt",
+              save_ckpt_as_valbest="valbest.pt", val_size=5000,
+              restore="valbest",
               sample_every=10, samples_dir="samples", verbose=True):
     """Train FLDD on binarized MNIST.
 
@@ -20,6 +22,16 @@ def run_mnist(block_size=1, seed=42, T=4, epochs=100, batch_size=128, lr=3e-4,
     and the learned alpha schedule. Pass `save_ckpt_as_best=None` or
     `save_ckpt_as_final=None` to skip those writes; set `sample_every=0` to
     disable intermediate sample grids.
+
+    Checkpoint selection:
+      - ``best.pt``    : lowest train loss (legacy criterion, kept for compat).
+      - ``valbest.pt`` : lowest held-out validation ELBO (the principled one).
+      - ``final.pt``   : last epoch.
+    With ``val_size > 0`` a held-out split is carved from the train set and the
+    val ELBO is tracked each epoch. ``restore`` controls which checkpoint is
+    loaded back into the returned model: "valbest" (default), "best", or
+    None (keep final-epoch weights). Set ``val_size=0`` to disable validation
+    entirely (returned model is final-epoch, matching the old behaviour).
     """
     torch.manual_seed(seed)
     if device == "cuda":
@@ -29,7 +41,12 @@ def run_mnist(block_size=1, seed=42, T=4, epochs=100, batch_size=128, lr=3e-4,
         print(f"Training FLDD on binarized MNIST, T={T}, "
               f"block_size={block_size}, seed={seed}, device={device}")
 
-    train_loader, _ = get_binarized_mnist(batch_size=batch_size)
+    val_loader = None
+    if val_size > 0:
+        train_loader, val_loader, _ = get_binarized_mnist(
+            batch_size=batch_size, val_size=val_size)
+    else:
+        train_loader, _ = get_binarized_mnist(batch_size=batch_size)
 
     forward_process = LearnedForwardProcess(T=T).to(device)
     model = UNet(channels=(32, 64, 128), block_size=block_size).to(device)
@@ -49,32 +66,53 @@ def run_mnist(block_size=1, seed=42, T=4, epochs=100, batch_size=128, lr=3e-4,
 
     best_loss = float("inf")
     best_epoch = None
+    best_val = float("inf")
+    best_val_epoch = None
+    best_val_alphas = None
     metrics = None
+
+    def _save(name, epoch, extra):
+        ckpt = {
+            "epoch": epoch,
+            "model": model.state_dict(),
+            "forward": forward_process.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "block_size": block_size,
+            "T": T,
+            "seed": seed,
+        }
+        ckpt.update(extra)
+        torch.save(ckpt, os.path.join(save_dir, name))
 
     for epoch in tqdm(range(1, epochs + 1), desc="training", disable=not verbose):
         metrics = train_epoch(model, forward_process, train_loader, optimizer,
                               T, device, block_size)
 
+        val_elbo = None
+        if val_loader is not None:
+            val_elbo = evaluate_elbo(model, forward_process, val_loader, T,
+                                     device, block_size)
+
         alphas = forward_process.get_alphas().detach().cpu().tolist()
         alpha_str = ", ".join(f"{a:.4f}" for a in alphas)
         if verbose:
+            val_str = f" | val_elbo {val_elbo:.4f}" if val_elbo is not None else ""
             print(f"epoch {epoch:3d} | loss {metrics['loss']:.4f} | "
-                  f"recon {metrics['recon']:.4f} | prior {metrics['prior']:.4f} | "
-                  f"alphas [{alpha_str}]")
+                  f"recon {metrics['recon']:.4f} | prior {metrics['prior']:.4f}"
+                  f"{val_str} | alphas [{alpha_str}]")
 
         if metrics["loss"] < best_loss and save_ckpt_as_best is not None:
             best_loss = metrics["loss"]
             best_epoch = epoch
-            torch.save({
-                "epoch": epoch,
-                "model": model.state_dict(),
-                "forward": forward_process.state_dict(),
-                "optimizer": optimizer.state_dict(),
-                "loss": best_loss,
-                "block_size": block_size,
-                "T": T,
-                "seed": seed,
-            }, os.path.join(save_dir, save_ckpt_as_best))
+            _save(save_ckpt_as_best, epoch, {"loss": best_loss})
+
+        if (val_elbo is not None and val_elbo < best_val
+                and save_ckpt_as_valbest is not None):
+            best_val = val_elbo
+            best_val_epoch = epoch
+            best_val_alphas = alphas
+            _save(save_ckpt_as_valbest, epoch,
+                  {"loss": metrics["loss"], "val_elbo": best_val})
 
         if (sample_every and sample_every > 0 and samples_dir
                 and epoch % sample_every == 0):
@@ -84,17 +122,28 @@ def run_mnist(block_size=1, seed=42, T=4, epochs=100, batch_size=128, lr=3e-4,
             if verbose:
                 print(f"  -> saved samples to {samples_dir}/epoch_{epoch:03d}.png")
 
+    final_alphas = forward_process.get_alphas().detach().cpu().tolist()
     if save_ckpt_as_final is not None:
-        torch.save({
-            "epoch": epochs,
-            "model": model.state_dict(),
-            "forward": forward_process.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "loss": metrics["loss"],
-            "block_size": block_size,
-            "T": T,
-            "seed": seed,
-        }, os.path.join(save_dir, save_ckpt_as_final))
+        _save(save_ckpt_as_final, epochs, {"loss": metrics["loss"]})
+
+    # Restore the selected checkpoint into the returned model so downstream
+    # sampling/FID uses the chosen weights, not the final epoch.
+    restore_name = {"valbest": save_ckpt_as_valbest,
+                    "best": save_ckpt_as_best}.get(restore)
+    restored = None
+    if restore_name is not None and os.path.exists(
+            os.path.join(save_dir, restore_name)):
+        ckpt = torch.load(os.path.join(save_dir, restore_name),
+                          map_location=device, weights_only=False)
+        model.load_state_dict(ckpt["model"])
+        forward_process.load_state_dict(ckpt["forward"])
+        restored = {"which": restore, "epoch": ckpt["epoch"]}
+        if verbose:
+            print(f"  restored {restore} checkpoint from epoch {ckpt['epoch']} "
+                  f"into returned model")
+
+    selected_alphas = (forward_process.get_alphas().detach().cpu().tolist()
+                       if restored else final_alphas)
 
     return {
         "model": model,
@@ -104,9 +153,14 @@ def run_mnist(block_size=1, seed=42, T=4, epochs=100, batch_size=128, lr=3e-4,
         "T": T,
         "best_loss": best_loss,
         "best_epoch": best_epoch,
+        "best_val": best_val if best_val_epoch is not None else None,
+        "best_val_epoch": best_val_epoch,
+        "best_val_alphas": best_val_alphas,
+        "restored": restored,
         "final_loss": metrics["loss"],
         "final_recon": metrics["recon"],
-        "final_alphas": forward_process.get_alphas().detach().cpu().tolist(),
+        "final_alphas": final_alphas,
+        "selected_alphas": selected_alphas,
     }
 
 

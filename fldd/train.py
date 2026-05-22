@@ -82,6 +82,64 @@ def compute_elbo_loss(model, forward_process, x, T, block_size=1):
     return loss, metrics
 
 
+@torch.no_grad()
+def evaluate_elbo(model, forward_process, val_loader, T, device,
+                  block_size=1, seed=0):
+    """Full per-example ELBO on a held-out set, in nats (lower is better).
+
+    Unlike the training loss (which samples one random t per batch and scales
+    by T), this sums the exact reconstruction term over ALL t in {1..T} plus
+    the prior, giving a low-variance, deterministic validation criterion. The
+    z_t draws use a fixed RNG so the number is reproducible across epochs.
+    """
+    model.eval()
+    forward_process.eval()
+    gen = torch.Generator(device=device).manual_seed(seed)
+    total = 0.0
+    n = 0
+    for (x,) in val_loader:
+        x = x.to(device)
+        B = x.shape[0]
+        alphas = forward_process.get_alphas()
+        recon = torch.zeros(B, device=device)
+        for t in range(1, T + 1):
+            alpha_t = alphas[t - 1]
+            prob_one_zt = x * (1.0 - alpha_t) + (1.0 - x) * alpha_t
+            z_t = torch.bernoulli(prob_one_zt, generator=gen)
+            t_idx = torch.full((B,), t - 1, device=device, dtype=torch.long)
+            logits = model(z_t, t_idx)
+
+            if t == 1:
+                target_pixel_prob = x  # q(z_0|z_1,x) = delta(x)
+            else:
+                alpha_s = alphas[t - 2]
+                target_pixel_prob = x * (1.0 - alpha_s) + (1.0 - x) * alpha_s
+
+            if block_size == 1:
+                pred_prob = torch.sigmoid(logits).clamp(1e-7, 1 - 1e-7)
+                tp = target_pixel_prob
+                bce = -(tp * torch.log(pred_prob)
+                        + (1 - tp) * torch.log(1 - pred_prob))
+                ent = -(tp * torch.log(tp.clamp_min(1e-12))
+                        + (1 - tp) * torch.log((1 - tp).clamp_min(1e-12)))
+                recon = recon + (bce - ent).sum(dim=(1, 2, 3))
+            else:
+                target_dist = compute_block_target(target_pixel_prob, block_size)
+                log_pred = F.log_softmax(logits, dim=1)
+                ce = -(target_dist * log_pred).sum(dim=1)
+                ent = -(target_dist
+                        * torch.log(target_dist.clamp_min(1e-12))).sum(dim=1)
+                recon = recon + (ce - ent).sum(dim=(1, 2))
+
+        alpha_T = alphas[T - 1]
+        p = (x * (1.0 - alpha_T) + (1.0 - x) * alpha_T).clamp(1e-8, 1 - 1e-8)
+        prior = (p * torch.log(2.0 * p)
+                 + (1.0 - p) * torch.log(2.0 * (1.0 - p))).sum(dim=(1, 2, 3))
+        total += (recon + prior).sum().item()
+        n += B
+    return total / n
+
+
 def train_epoch(model, forward_process, train_loader, optimizer, T, device, block_size=1):
     model.train()
     forward_process.train()

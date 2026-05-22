@@ -53,9 +53,16 @@ Results (n = 6 paired seeds: 42–47, 100 epochs each, all three block sizes;
 
 | `|G|`     | ELBO loss (mean ± sd)  | FID @ 10k (mean ± sd)  |
 |-----------|------------------------|------------------------|
-| 1 (pixel) | 690.43 ± 0.71          | 58.11 ± 2.96           |
-| 2 (1×2)   | 673.44 ± 0.54          | 55.63 ± 2.56           |
-| 4 (2×2)   | 656.34 ± 0.55          | **49.08 ± 3.71**       |
+| 1 (pixel) | 159.31 ± 0.67          | 58.11 ± 2.96           |
+| 2 (1×2)   | 142.13 ± 0.46          | 55.63 ± 2.56           |
+| 4 (2×2)   | **125.20 ± 0.49**      | **49.08 ± 3.71**       |
+
+ELBO values are the corrected KL form (`results/results_elbo_corrected.json`):
+the per-pixel / per-block term is `KL[q‖p_θ] = CE − H[q]`, not the raw
+cross-entropy. The earlier 690-nat figures included a constant parasitic
+`H[q] ≈ 531 nats/image` (≈ 77 % of the reported value) that is identical across
+`|G|` and so cancels in any cross-block comparison — which is why the per-image
+gap below is unchanged (159.31 − 125.20 ≈ 34 nats, same as the old 690 − 656).
 
 Bold marks the headline claim (held-out FID); ELBO is intentionally unbolded —
 it's monotone by construction (the |G|=4 head is strictly more expressive) and
@@ -77,6 +84,12 @@ positive (Δ = +2.37). With n = 6, the Wilcoxon's smallest reachable p is 1/64
 ≈ 0.016, which 2 vs 4 hits exactly; 1 vs 4 is one near-tie away from doing
 the same.
 
+**Multiple-comparison correction.** Holm correction across the three pairwise
+tests (two-sided, the conservative choice; `results/results_e2_holm.json`):
+2 vs 4 `p_holm = 0.007` ✓, **1 vs 4 `p_holm = 0.023` ✓**, 1 vs 2
+`p_holm = 0.21` ✗. Both comparisons against `|G|=4` survive at α = 0.05; the
+1 vs 2 comparison does not, consistent with the raw tests above.
+
 - **The big jump is 2 → 4, not 1 → 2.** Horizontal-only 1×2 blocks help only marginally (CI crosses zero); 2×2 blocks — which capture both horizontal *and* vertical local structure — give the statistically robust win. This is consistent with the TC absorbed by |G|=2 being a strict subset of the TC absorbed by |G|=4.
 - **H2 supported** for |G|=4; |G|=2 directionally consistent but underpowered.
 
@@ -87,6 +100,16 @@ Per-seed paired FID differences:
 | Δ FID (1−2)  | +0.98 | −2.42 | +0.44  | +3.80 | +2.05  | +10.05 |
 | Δ FID (2−4)  | +6.86 | +2.37 | +9.90  | +3.98 | +8.71  | +7.48  |
 | Δ FID (1−4)  | +7.83 | −0.05 | +10.34 | +7.79 | +10.75 | +17.53 |
+
+**Seed protocol (disclosure).** Seeds 42–44 (n = 3) were run first; seeds 45–47
+were added afterward to increase power. We disclose this because the headline
+1-vs-4 comparison strengthened with the added seeds — one-sided paired-t
+`p ≈ 0.10` at n = 3, `p ≈ 0.006` at n = 6 — so the analysis is vulnerable to an
+optional-stopping reading. To guard against it we (i) report the full per-seed
+differences above, (ii) apply Holm family-wise correction at the final n = 6,
+and (iii) note that the larger 2-vs-4 effect was already near-significant at
+n = 3 (one-sided `p ≈ 0.05`). <!-- TODO(authors): if 45–47 were in fact planned
+upfront, state that here and delete the optional-stopping caveat. -->
 
 ### Schedule collapse
 
@@ -169,20 +192,19 @@ Per-row marginals (mean ± across-seed sd, n = 3):
 
 Paired statistics on ΔFID = FID(|G|=1) − FID(|G|=4), per seed (n = 3 each):
 
-| T  | mean Δ FID (paired) | sd Δ | paired t | p (1-sided) | bootstrap 95% CI | sign |
-|----|---------------------|------|----------|-------------|------------------|------|
-| 2  | **+42.45**          | 6.02 | 12.21    | 0.003       | [+38.28, +49.35] | 3/3  |
-| 4  | +6.42               | 5.94 | 1.87     | 0.101       | [−0.31, +10.91]  | 2/3  |
-| 8  | **+6.90**           | 1.25 | 9.58     | 0.005       | [+5.57, +8.05]   | 3/3  |
-| 16 | **+12.91**          | 5.33 | 4.20     | 0.026       | [+8.52, +18.84]  | 3/3  |
+| T  | mean Δ FID (paired) | sd Δ | paired t | p (1-sided) | sign |
+|----|---------------------|------|----------|-------------|------|
+| 2  | **+42.45**          | 6.02 | 12.21    | 0.003       | 3/3  |
+| 4  | +6.42               | 5.94 | 1.87     | 0.101       | 2/3  |
+| 8  | **+6.90**           | 1.25 | 9.58     | 0.005       | 3/3  |
+| 16 | **+12.91**          | 5.33 | 4.20     | 0.026       | 3/3  |
 
-Bootstrap CIs collapse to the data min/max here: with n = 3 there are only 3³ = 27
-distinct resamples, so the 2.5 / 97.5 quantiles essentially round to the
-smallest and largest observed Δ. Treat the CI as descriptive — the t-test on
-the paired differences is the only test with finer-grained resolution at
-this sample size. Wilcoxon and exact sign tests bottom out at p = 0.125 with
-n = 3 (one-sided support is too small to clear 0.05); the t-test gets there
-via df = 2.
+We omit bootstrap CIs here: with only 3³ = 27 distinct resamples the 2.5 / 97.5
+quantiles collapse onto the observed min/max and carry no information beyond the
+range. With n = 3 the Wilcoxon and exact sign tests also bottom out at p = 0.125
+(one-sided support is too small to clear 0.05), so the paired t-test (df = 2) is
+the only test with the resolution to reject at this sample size and we report it
+alone.
 
 ![FID vs T](figures/e4_fid_vs_t.png)
 ![paired block advantage vs T](figures/e4_gap_vs_t.png)

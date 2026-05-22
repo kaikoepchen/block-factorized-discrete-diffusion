@@ -4,11 +4,19 @@ import torchvision
 import torchvision.transforms as transforms
 
 
-def get_binarized_mnist(data_dir="./data", batch_size=128, num_workers=0):
+def get_binarized_mnist(data_dir="./data", batch_size=128, num_workers=0,
+                        val_size=0):
     """Load MNIST and binarize by thresholding at 0.5.
 
-    Returns train and test dataloaders with images as binary tensors
-    of shape (B, 1, 28, 28) with values in {0, 1}.
+    Returns dataloaders with images as binary tensors of shape
+    (B, 1, 28, 28), values in {0, 1}.
+
+    If ``val_size == 0`` (default) returns ``(train_loader, test_loader)``,
+    preserving the original 2-tuple API. If ``val_size > 0``, the last
+    ``val_size`` images of the 60k training set are carved off as a held-out
+    validation split (deterministic — always the same tail, never the test
+    set, so the FID reference set is untouched) and the function returns
+    ``(train_loader, val_loader, test_loader)``.
     """
     transform = transforms.ToTensor()
 
@@ -27,6 +35,12 @@ def get_binarized_mnist(data_dir="./data", batch_size=128, num_workers=0):
     train_imgs = train_imgs.unsqueeze(1)
     test_imgs = test_imgs.unsqueeze(1)
 
+    val_imgs = None
+    if val_size > 0:
+        assert val_size < train_imgs.shape[0], "val_size exceeds training set"
+        val_imgs = train_imgs[-val_size:]
+        train_imgs = train_imgs[:-val_size]
+
     train_loader = DataLoader(
         TensorDataset(train_imgs),
         batch_size=batch_size,
@@ -40,5 +54,14 @@ def get_binarized_mnist(data_dir="./data", batch_size=128, num_workers=0):
         shuffle=False,
         num_workers=num_workers,
     )
+
+    if val_size > 0:
+        val_loader = DataLoader(
+            TensorDataset(val_imgs),
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+        )
+        return train_loader, val_loader, test_loader
 
     return train_loader, test_loader
