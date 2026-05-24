@@ -1,0 +1,354 @@
+{
+  "config": {
+    "T_values": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "block_sizes": [
+      1,
+      4
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "epochs": 30,
+    "n_fid_samples": 10000,
+    "reuse_t4_dir": "checkpoints_e4_t4_reparam6"
+  },
+  "per_run": [
+    {
+      "T": 2,
+      "block_size": 1,
+      "seed": 42,
+      "final_loss": 138.82121618310887,
+      "best_loss": 138.82121618310887,
+      "best_epoch": 30,
+      "epochs_trained": 30,
+      "fid": 103.20915172000537,
+      "reused": false
+    },
+    {
+      "T": 2,
+      "block_size": 1,
+      "seed": 43,
+      "final_loss": 139.9854023717778,
+      "best_loss": 139.18141028486488,
+      "best_epoch": 24,
+      "epochs_trained": 30,
+      "fid": 110.82539381261313,
+      "reused": false
+    },
+    {
+      "T": 2,
+      "block_size": 1,
+      "seed": 44,
+      "final_loss": 138.2025681431199,
+      "best_loss": 138.2025681431199,
+      "best_epoch": 30,
+      "epochs_trained": 30,
+      "fid": 110.99892907577689,
+      "reused": false
+    },
+    {
+      "T": 2,
+      "block_size": 4,
+      "seed": 42,
+      "final_loss": 111.86523393039658,
+      "best_loss": 111.86523393039658,
+      "best_epoch": 30,
+      "epochs_trained": 30,
+      "fid": 84.38948894103925,
+      "reused": false
+    },
+    {
+      "T": 2,
+      "block_size": 4,
+      "seed": 43,
+      "final_loss": 112.4217082203685,
+      "best_loss": 112.4217082203685,
+      "best_epoch": 30,
+      "epochs_trained": 30,
+      "fid": 78.37175615225334,
+      "reused": false
+    },
+    {
+      "T": 2,
+      "block_size": 4,
+      "seed": 44,
+      "final_loss": 111.91365618583484,
+      "best_loss": 111.91365618583484,
+      "best_epoch": 30,
+      "epochs_trained": 30,
+      "fid": 88.50103983352949,
+      "reused": false
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 42,
+      "final_loss": 96.7843191329138,
+      "best_loss": 96.7843191329138,
+      "best_epoch": 21,
+      "epochs_trained": 100,
+      "fid": 79.13915758464012,
+      "reused": true
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 43,
+      "final_loss": 96.83158586408709,
+      "best_loss": 96.83158586408709,
+      "best_epoch": 21,
+      "epochs_trained": 100,
+      "fid": 67.07432181713105,
+      "reused": true
+    },
+    {
+      "T": 4,
+      "block_size": 1,
+      "seed": 44,
+      "final_loss": 96.37472349224669,
+      "best_loss": 96.37472349224669,
+      "best_epoch": 21,
+      "epochs_trained": 100,
+      "fid": 66.15283908791736,
+      "reused": true
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 42,
+      "final_loss": 85.3560541148508,
+      "best_loss": 85.3560541148508,
+      "best_epoch": 22,
+      "epochs_trained": 100,
+      "fid": 51.45917911555139,
+      "reused": true
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 43,
+      "final_loss": 86.391830844479,
+      "best_loss": 86.391830844479,
+      "best_epoch": 22,
+      "epochs_trained": 100,
+      "fid": 57.19703655216719,
+      "reused": true
+    },
+    {
+      "T": 4,
+      "block_size": 4,
+      "seed": 44,
+      "final_loss": 85.86246830155521,
+      "best_loss": 85.86246830155521,
+      "best_epoch": 23,
+      "epochs_trained": 100,
+      "fid": 55.01483698338811,
+      "reused": true
+    },
+    {
+      "T": 8,
+      "block_size": 1,
+      "seed": 42,
+      "final_loss": 130.1375358065803,
+      "best_loss": 95.08275825660546,
+      "best_epoch": 14,
+      "epochs_trained": 30,
+      "fid": 41.36570438076272,
+      "reused": false
+    },
+    {
+      "T": 8,
+      "block_size": 1,
+      "seed": 43,
+      "final_loss": 132.86138007246254,
+      "best_loss": 95.80922805679428,
+      "best_epoch": 15,
+      "epochs_trained": 30,
+      "fid": 34.07309025071157,
+      "reused": false
+    },
+    {
+      "T": 8,
+      "block_size": 1,
+      "seed": 44,
+      "final_loss": 130.83301358345227,
+      "best_loss": 95.56086745184341,
+      "best_epoch": 14,
+      "epochs_trained": 30,
+      "fid": 41.66572793394461,
+      "reused": false
+    },
+    {
+      "T": 8,
+      "block_size": 4,
+      "seed": 42,
+      "final_loss": 104.52764451531542,
+      "best_loss": 85.89022755122684,
+      "best_epoch": 22,
+      "epochs_trained": 30,
+      "fid": 60.350990682215,
+      "reused": false
+    },
+    {
+      "T": 8,
+      "block_size": 4,
+      "seed": 43,
+      "final_loss": 106.28035228346889,
+      "best_loss": 86.62785607006722,
+      "best_epoch": 21,
+      "epochs_trained": 30,
+      "fid": 34.57135058514113,
+      "reused": false
+    },
+    {
+      "T": 8,
+      "block_size": 4,
+      "seed": 44,
+      "final_loss": 105.38387457752006,
+      "best_loss": 86.85293001117128,
+      "best_epoch": 22,
+      "epochs_trained": 30,
+      "fid": 57.98506163817126,
+      "reused": false
+    },
+    {
+      "T": 16,
+      "block_size": 1,
+      "seed": 42,
+      "final_loss": 131.33086997256692,
+      "best_loss": 97.67538220954664,
+      "best_epoch": 22,
+      "epochs_trained": 30,
+      "fid": 41.44167283396108,
+      "reused": false
+    },
+    {
+      "T": 16,
+      "block_size": 1,
+      "seed": 43,
+      "final_loss": 136.4301798093569,
+      "best_loss": 97.48871456937634,
+      "best_epoch": 21,
+      "epochs_trained": 30,
+      "fid": 23.286461075826566,
+      "reused": false
+    },
+    {
+      "T": 16,
+      "block_size": 1,
+      "seed": 44,
+      "final_loss": 129.24942279806783,
+      "best_loss": 97.11776784972433,
+      "best_epoch": 14,
+      "epochs_trained": 30,
+      "fid": 27.566400229707767,
+      "reused": false
+    },
+    {
+      "T": 16,
+      "block_size": 4,
+      "seed": 42,
+      "final_loss": 106.13255064637511,
+      "best_loss": 87.39040887383592,
+      "best_epoch": 22,
+      "epochs_trained": 30,
+      "fid": 62.35898214947703,
+      "reused": false
+    },
+    {
+      "T": 16,
+      "block_size": 4,
+      "seed": 43,
+      "final_loss": 109.81145541317814,
+      "best_loss": 86.79418765692722,
+      "best_epoch": 21,
+      "epochs_trained": 30,
+      "fid": 54.34461197528002,
+      "reused": false
+    },
+    {
+      "T": 16,
+      "block_size": 4,
+      "seed": 44,
+      "final_loss": 104.72796965423441,
+      "best_loss": 88.50399729588649,
+      "best_epoch": 22,
+      "epochs_trained": 30,
+      "fid": 46.410240058145234,
+      "reused": false
+    }
+  ],
+  "aggregates": {
+    "2": {
+      "1": {
+        "n_seeds": 3,
+        "fid_mean": 108.34449005126953,
+        "fid_std": 4.448181629180908,
+        "loss_mean": 139.00306701660156,
+        "loss_std": 0.9052155017852783
+      },
+      "4": {
+        "n_seeds": 3,
+        "fid_mean": 83.75409698486328,
+        "fid_std": 5.09444522857666,
+        "loss_mean": 112.06686401367188,
+        "loss_std": 0.30825331807136536
+      }
+    },
+    "4": {
+      "1": {
+        "n_seeds": 3,
+        "fid_mean": 70.78878021240234,
+        "fid_std": 7.246308326721191,
+        "loss_mean": 96.66354370117188,
+        "loss_std": 0.25123831629753113
+      },
+      "4": {
+        "n_seeds": 3,
+        "fid_mean": 54.5570182800293,
+        "fid_std": 2.896196126937866,
+        "loss_mean": 85.8701171875,
+        "loss_std": 0.5179294943809509
+      }
+    },
+    "8": {
+      "1": {
+        "n_seeds": 3,
+        "fid_mean": 39.03483963012695,
+        "fid_std": 4.299620628356934,
+        "loss_mean": 131.2772979736328,
+        "loss_std": 1.4152265787124634
+      },
+      "4": {
+        "n_seeds": 3,
+        "fid_mean": 50.96913528442383,
+        "fid_std": 14.250083923339844,
+        "loss_mean": 105.39728546142578,
+        "loss_std": 0.8764312267303467
+      }
+    },
+    "16": {
+      "1": {
+        "n_seeds": 3,
+        "fid_mean": 30.76484489440918,
+        "fid_std": 9.490809440612793,
+        "loss_mean": 132.33682250976562,
+        "loss_std": 3.69455885887146
+      },
+      "4": {
+        "n_seeds": 3,
+        "fid_mean": 54.37127685546875,
+        "fid_std": 7.974404335021973,
+        "loss_mean": 106.89065551757812,
+        "loss_std": 2.6251678466796875
+      }
+    }
+  }
+}
